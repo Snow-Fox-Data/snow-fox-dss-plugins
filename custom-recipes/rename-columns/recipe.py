@@ -4,7 +4,7 @@ from dataiku import SQLExecutor2
 import pandas as pd, numpy as np
 import re
 
-from rename_columns.mapping import do_map
+import mapping_utils as mapping_utils
 # from rename_columns.mapping import add_description
 
 # Source
