@@ -14,7 +14,7 @@
     "inputRoles": [
         {
             "name": "source_dataset",
-            "label": "Dataset to Rename",
+            "label": "Dataset with Columns to Rename",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -22,7 +22,7 @@
         },
         {
             "name": "mapping_dataset",
-            "label": "Mapping Dataset",
+            "label": "Dataset Containing Column Metadata",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
