@@ -4,15 +4,6 @@ from dataiku import SQLExecutor2
 import pandas as pd, numpy as np
 import re
 
-def add_description(desc_field, output_ds, comments):
-    if desc_field != '':
-        ds_schema = output_ds.read_schema()
-        for column in ds_schema:
-            if column['name'].lower() in comments:
-                column['comment'] = comments[column['name'].lower()]
-
-        output_ds.write_schema(ds_schema)
-
 def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field):
     comments = {}
 
