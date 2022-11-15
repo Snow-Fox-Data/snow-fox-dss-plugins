@@ -1,0 +1,89 @@
+// This file is the descriptor for the Custom code recipe remap-columns
+{
+    // Meta data for display purposes
+    "meta": {
+        // label: name of the recipe as displayed, should be short
+        "label": "Rename columns",
+        // description: longer string to help end users understand what this recipe does
+        "description": "Allows SQL dataset columns to be renamed using a mapping dataset. Optionally, column descriptions can be added to the output dataset.",
+        // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "icon-random"
+    },
+    "kind": "PYTHON",
+    
+    "inputRoles": [
+        {
+            "name": "source_dataset",
+            "label": "Dataset to Rename",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "mustBeSQL": true
+        },
+        {
+            "name": "mapping_dataset",
+            "label": "Mapping Dataset",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "mustBeSQL": true
+        }
+    ],
+
+    "outputRoles": [
+        {
+            "name": "output_dataset",
+            "label": "Output",
+            "arity": "UNARY",
+            "mustBeSQL": true,
+            "required": true,
+            "acceptsDataset": true
+        }
+    ],
+
+    "selectableFromDataset": "source_dataset",
+
+    "params": [
+        {
+            "name": "source_field",
+            "label": "Source Column name",
+            "type": "COLUMN",
+            "mandatory": true,
+            "columnRole": "mapping_dataset",
+             "description": "Name of the column from Mapping file containing the original column names"
+        },
+         {
+            "name": "target_field",
+            "label": "Renamed Column",
+            "type": "COLUMN",
+             "description": "Name of the column from Mapping file containing the new column names",
+            "mandatory": true,
+            "columnRole": "mapping_dataset"
+        },
+         {
+            "name": "desc_field",
+            "label": "Description Column",
+            "type": "COLUMN",
+             "description": "Optional Description field",
+            "mandatory": false,
+            "columnRole": "mapping_dataset"
+        }, {
+            "name": "table_field",
+            "label": "Dataset Identifier Column",
+            "type": "COLUMN",
+            "mandatory": false,
+            "columnRole": "mapping_dataset",
+             "description": "Optional column from the Mapping file containing unique dataset identifiers. Used if your mapping dataset contains metadata for multiple datasets. If you don't know this, just leave it blank."
+        },
+         {
+            "name": "table_name",
+            "label": "Table name",
+            "type": "STRING",
+            "mandatory": false,
+             "description": "If 'Dataset Identifier Column' is specified, name of the dataset to match. If you don't know this, just leave it blank."
+        }
+    ],
+
+    "resourceKeys": []
+
+}
