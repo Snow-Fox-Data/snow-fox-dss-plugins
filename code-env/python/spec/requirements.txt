@@ -1,3 +1,0 @@
-flask
-sentry-sdk[flask]
-APScheduler
