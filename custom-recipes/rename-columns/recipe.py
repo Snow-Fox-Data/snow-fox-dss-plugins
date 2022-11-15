@@ -52,7 +52,7 @@ def add_description(desc_field, output_ds, comments):
 
 
 # map from Field => Remap Name
-sql, comments = do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, target_field)
+sql, comments = mapping_utils.do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, target_field)
 executor = SQLExecutor2(dataset=source_ds)
 executor.exec_recipe_fragment(output_ds, query = sql,overwrite_output_schema=True)
 
