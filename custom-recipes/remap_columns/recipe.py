@@ -4,8 +4,8 @@ from dataiku import SQLExecutor2
 import pandas as pd, numpy as np
 import re
 
-from columnremapper import do_map
-from columnremapper import add_description
+from remap_columns import do_map
+from remap_columns import add_description
 
 # Source
 source_dataset = get_input_names_for_role('source_dataset')
