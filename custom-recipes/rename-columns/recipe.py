@@ -4,7 +4,9 @@ from dataiku import SQLExecutor2
 import pandas as pd, numpy as np
 import re
 
-import mapping_utils as mapping_utils
+import mapping_utils
+
+# import mapping_utils as mapping_utils
 # from rename_columns.mapping import add_description
 
 # Source
@@ -52,7 +54,7 @@ def add_description(desc_field, output_ds, comments):
 
 
 # map from Field => Remap Name
-sql, comments = mapping_utils.do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, target_field)
+sql, comments = do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, target_field)
 executor = SQLExecutor2(dataset=source_ds)
 executor.exec_recipe_fragment(output_ds, query = sql,overwrite_output_schema=True)
 
