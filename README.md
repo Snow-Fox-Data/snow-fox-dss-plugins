@@ -1,4 +1,4 @@
-# snow-fox-dss-plugins
+# Snow Fox Data - Dataiku Plugins
 #### Plugins to extend the capabilities of the Dataiku platform
 
 Includes:
