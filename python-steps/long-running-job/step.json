@@ -1,0 +1,39 @@
+/* This file is the descriptor for the Custom python step long-running-job */
+{
+    "meta" : {
+        // label: name of the scenario step as displayed, should be short
+        "label": "Check for long running jobs",
+
+        // description: longer string to help end users understand what this scenario step does
+        "description": "Step will throw exception if it finds a job that has run more than a specified number of seconds",
+
+        // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "icon-time"
+    },
+    
+    "params": [
+        {
+            "name": "max_seconds",
+            "label": "Alert If Over (seconds)",
+            "type": "INT",
+            "defaultValue": 42,
+            "description": "Fail step if a job has been running for over a certain number of seconds",
+            "mandatory": true
+        },{
+            "name": "run_type",
+            "type": "SELECT",
+            "label": "Check Projects",
+            "defaultValue": "0",
+            "selectChoices": [
+                {
+                    "value": "0",
+                    "label": "Only this project"
+                },
+                {
+                    "value": "1",
+                    "label": "All projects"
+                }
+            ]
+        }
+    ]
+}

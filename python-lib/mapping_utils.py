@@ -1,8 +1,8 @@
-# import dataiku
-# from dataiku.customrecipe import *
-# from dataiku import SQLExecutor2
-# import pandas as pd, numpy as np
-# import re
+import dataiku
+from dataiku.customrecipe import *
+from dataiku import SQLExecutor2
+import pandas as pd, numpy as np
+import re
 
 def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field):
     comments = {}
