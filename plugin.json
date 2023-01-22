@@ -3,7 +3,7 @@
     "id": "snow-fox-plugins",
 
     // It is highly recommended to use Semantic Versioning
-    "version": "0.3.0",
+    "version": "0.4.0",
 
     // Meta data for display purposes:
     "meta": {
@@ -19,7 +19,7 @@
         "icon": "icon-bullseye",
 
         // List of tags for filtering the list of plugins
-        "tags": ['governance'], //for example: ["Machine Learning", "NLP"]
+        "tags": ['Governance', 'Machine Learning'], //for example: ["Machine Learning", "NLP"]
 
         // URL where the user can learn more about the plugin
         "url": "https://snowfoxdata.com",
