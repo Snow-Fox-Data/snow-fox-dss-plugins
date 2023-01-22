@@ -7,7 +7,7 @@ from dataiku.customrecipe import get_output_names_for_role
 from dataiku.customrecipe import get_recipe_config
 
 cfg = get_recipe_config()
-model_id = cfg['model_id']
+# model_id = cfg['model_id']
 analysis_id = cfg['analysis_id']
 mltask_id = cfg['mltask_id']
 build_dataset = cfg['build_dataset']
