@@ -1,0 +1,98 @@
+// This file is the descriptor for the Custom code recipe evaluate-model-versions
+{
+    // Meta data for display purposes
+    "meta": {
+        // label: name of the recipe as displayed, should be short
+        "label": "Evaluate model versions",
+        // description: longer string to help end users understand what this recipe does
+        "description": "Evaluates all versions of a model training session on a holdout set",
+        // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "icon-dashboard"
+    },
+
+    "kind": "PYTHON",
+    
+
+    // Inputs and outputs are defined by roles. In the recipe's I/O tab, the user can associate one
+    // or more dataset to each input and output role.
+
+    // The "arity" field indicates whether the user can associate several datasets to the role ('NARY')
+    // or at most one ('UNARY'). The "required" field indicates whether the user is allowed to
+    // associate no dataset with the role.
+
+    "inputRoles": [
+        {
+            "name": "input_A_role",
+            "label": "Model to evaluate",
+            "description": "",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": false,
+            "acceptsSavedModel": true
+        }
+    ],
+
+    "outputRoles": [
+        {
+            "name": "main_output",
+            "label": "main output displayed name",
+            "description": "what main output means",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true
+        }
+    ],
+
+    /* The field "params" holds a list of all the params
+       for wich the user will be prompted for values in the Settings tab of the recipe.
+
+       The available parameter types include:
+       STRING, STRINGS, INT, DOUBLE, BOOLEAN, SELECT, MULTISELECT, MAP, TEXTAREA, PRESET, COLUMN, COLUMNS
+
+       For the full list and for more details, see the documentation: https://doc.dataiku.com/dss/latest/plugins/reference/params.html
+    */
+
+    "params": [
+       /* {
+            "name": "model_id",
+            "label": "Model ID",
+            "type": "STRING",
+            "description": "",
+            "mandatory": true
+        }, */
+        {
+            "name": "analysis_id",
+            "label": "Analysis ID",
+            "type": "STRING",
+            "description": "",
+            "mandatory": true
+        },{
+            "name": "mltask_id",
+            "label": "ML Task ID",
+            "type": "STRING",
+            "description": "",
+            "mandatory": true
+        },{
+            "name": "build_dataset",
+            "label": "Dataset to build",
+            "type": "STRING",
+            "description": "",
+            "mandatory": true
+        },{
+            "name": "build_recursive",
+            "label": "Dataset to build",
+            "type": "BOOLEAN",
+            "description": "Smart recursive build on the above dataset?",
+            "mandatory": true
+        }
+    ],
+
+    // The field "resourceKeys" holds a list of keys that allows to limit the number
+    // of concurrent executions and activities triggered by this recipe.
+    //
+    // Administrators can configure the limit per resource key in the Administration > Settings > Flow build
+    // screen.
+
+    "resourceKeys": []
+
+}
