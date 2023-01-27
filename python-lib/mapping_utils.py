@@ -8,6 +8,8 @@ import re
 def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field, to_upper, char_replace_mode):
     comments = {}
 
+    print(f'to_upper: {to_upper}, char_replace:{ char_replace_mode}')
+
     source_info = source_ds.get_location_info()['info']
     out_info = output_ds.get_location_info()['info']
 

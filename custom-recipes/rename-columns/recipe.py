@@ -26,6 +26,9 @@ cfg = get_recipe_config()
 source_field = cfg['source_field']
 target_field = cfg['target_field']
 
+char_replace = cfg['char_replace']
+to_upper = cfg['to_upper']
+
 desc_field = ''
 if 'desc_field' in cfg:
     desc_field = cfg['desc_field']
@@ -54,7 +57,7 @@ def add_description(desc_field, output_ds, comments):
 
 
 # map from Field => Remap Name
-sql, comments = do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, target_field)
+sql, comments = do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, target_field, char_replace_mode=char_replace, to_upper=to_upper)
 executor = SQLExecutor2(dataset=source_ds)
 executor.exec_recipe_fragment(output_ds, query = sql,overwrite_output_schema=True)
 
