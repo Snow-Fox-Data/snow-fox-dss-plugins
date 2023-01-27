@@ -38,6 +38,10 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
 
         remapped = map_df.query(qry)
 
+        # capitalize each word
+        if str(to_upper) == 'True':
+            column = string.capwords(column)
+
         if len(remapped) > 0:
             row = remapped.iloc[0]
 
@@ -58,9 +62,6 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
                     # replace non-alphanumeric characters 
                     new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
                     
-            # capitalize each word
-            if to_upper:
-                new_name = string.capwords(new_name)
 
             # remove trailing underscore
             if new_name.endswith('_'):
