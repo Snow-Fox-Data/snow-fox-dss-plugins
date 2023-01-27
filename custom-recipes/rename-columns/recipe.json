@@ -81,7 +81,28 @@
             "type": "STRING",
             "mandatory": false,
              "description": "If 'Dataset Identifier Column' is specified, name of the dataset to match. If you don't know this, just leave it blank."
-        }
+        },
+        {
+           "name": "table_name",
+           "label": "Table name",
+           "type": "STRING",
+           "mandatory": false,
+            "description": "If 'Dataset Identifier Column' is specified, name of the dataset to match. If you don't know this, just leave it blank."
+       },{
+        "type": "SELECT",
+        "name": "char_replace",
+        "label": "Replace special characters?",
+        "selectChoices": [
+          { "value": "no", "label": "Do not replace"},
+          { "value": "underscore", "label": "Replace with underscore"},
+          { "value": "delete", "label": "Delete the character"}
+        ]
+      },{
+        "type": "BOOLEAN",
+        "name": "to_upper",
+        "label": "Convert column names to uppercase",
+        "defaultValue": false
+      }
     ],
 
     "resourceKeys": []

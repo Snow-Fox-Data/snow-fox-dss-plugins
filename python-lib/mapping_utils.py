@@ -1,10 +1,11 @@
+import string
 import dataiku
 from dataiku.customrecipe import *
 from dataiku import SQLExecutor2
 import pandas as pd, numpy as np
 import re
 
-def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field):
+def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field, to_upper, char_replace_mode):
     comments = {}
 
     source_info = source_ds.get_location_info()['info']
@@ -45,12 +46,19 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
             if pd.isna(row[dest_field]):
                  new_name = column
             else:
-                # remove puncuation
-                new_name = re.sub(r'(?<=[.?!])( +|\Z)', '', row[dest_field])
-                # replace non-alphanumeric characters with an empty string
-                new_name = re.sub(r'[^a-zA-Z0-9_]', ' ', new_name)
-                # capitalize each word
-                # new_name = string.capwords(new_name)
+                if char_replace_mode != 'no':
+                    replace_char = '_'
+                    if char_replace_mode == 'delete':
+                        replace_char = ''
+                    
+                    # remove puncuation
+                    new_name = re.sub(r'(?<=[.?!])( +|\Z)', replace_char, row[dest_field])
+                    # replace non-alphanumeric characters 
+                    new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
+                    
+            # capitalize each word
+            if to_upper:
+                new_name = string.capwords(new_name)
 
             # remove trailing underscore
             if new_name.endswith('_'):
