@@ -41,7 +41,7 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
         new_name = column
         if str(to_upper) == 'True':
             # capitalize each word
-            new_name = string.capwords(column)
+            new_name = column.upper()
 
         if len(remapped) > 0:
             row = remapped.iloc[0]
@@ -79,7 +79,7 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
             remapped_cols.append(row[source_field])
         else:
             print(f'No mapping found for {column}')
-            sql += f'"{column} AS {new_name}",'
+            sql += f'"{column}" AS "{new_name}",'
 
     # remove the last comma
     sql = sql[0:len(sql)-1]
