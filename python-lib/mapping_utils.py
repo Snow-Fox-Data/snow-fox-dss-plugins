@@ -38,20 +38,16 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
 
         remapped = map_df.query(qry)
 
-        # capitalize each word
+        new_name = column
         if str(to_upper) == 'True':
-            column = string.capwords(column)
+            # capitalize each word
+            new_name = string.capwords(column)
 
         if len(remapped) > 0:
             row = remapped.iloc[0]
 
-            # removing all special characters in the mappings
-            new_name = column
-
             # if the field is empty, just use the existing column name
-            if pd.isna(row[dest_field]):
-                 new_name = column
-            else:
+            if not pd.isna(row[dest_field]):
                 if char_replace_mode != 'no':
                     replace_char = '_'
                     if char_replace_mode == 'delete':
@@ -83,7 +79,7 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
             remapped_cols.append(row[source_field])
         else:
             print(f'No mapping found for {column}')
-            sql += f'"{column}",'
+            sql += f'"{column} AS {new_name}",'
 
     # remove the last comma
     sql = sql[0:len(sql)-1]
