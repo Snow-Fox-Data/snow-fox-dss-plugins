@@ -36,7 +36,10 @@ def char_replacements(col_name, to_upper, space_replace, special_char_replace, d
         
         # remove puncuation
         # new_name = re.sub(r'(?<=[.?!])(+|\Z)', replace_char, new_name)
-        new_name = re.sub('[^a-zA-Z0-9\n\.]', replace_char, new_name)
+        chars = re.escape(string.punctuation)
+        new_name = re.sub('['+chars+']', '', new_name)
+
+        # new_name = re.sub('[^a-zA-Z0-9\n\.]', replace_char, new_name)
         # replace non-alphanumeric characters 
         # new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
         
