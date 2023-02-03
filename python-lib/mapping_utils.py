@@ -5,10 +5,52 @@ from dataiku import SQLExecutor2
 import pandas as pd, numpy as np
 import re
 
-def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field, to_upper, char_replace_mode):
-    comments = {}
+def char_replacements(col_name, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace):
+    new_name = col_name
 
-    print(f'to_upper: {to_upper}, char_replace:{ char_replace_mode}')
+    if space_replace != 'no':
+        if space_replace == 'underscore':
+            new_name = new_name.replace(' ', '_')
+        else:
+            new_name = new_name.replace(' ', '')
+
+    if dollar_char_replace != 'no':
+        if dollar_char_replace == 'underscore':
+            new_name = new_name.replace('$', '_')
+        else:
+            new_name = new_name.replace('$', '')
+
+    if start_char_replace != 'no':
+        if start_char_replace == 'underscore':
+            if new_name[0].isdigit():
+                new_name = '_' + new_name
+        else:
+            while new_name[0].isdigit():
+                new_name = new_name[1:]
+    
+    # if the field is empty, just use the existing column name
+    if special_char_replace != 'no':
+        replace_char = '_'
+        if special_char_replace == 'delete':
+            replace_char = ''
+        
+        # remove puncuation
+        new_name = re.sub(r'(?<=[.?!])(+|\Z)', replace_char, new_name)
+        # replace non-alphanumeric characters 
+        # new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
+        
+    # remove trailing underscore
+    if new_name.endswith('_'):
+        new_name = new_name.rstrip(new_name[-1])
+
+    if str(to_upper) == 'True':
+        # capitalize each word
+        new_name = new_name.upper()
+
+    return new_name
+
+def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace):
+    comments = {}
 
     source_info = source_ds.get_location_info()['info']
     out_info = output_ds.get_location_info()['info']
@@ -37,31 +79,10 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
             qry += f' & ({table_field}=="{table_name}")'
 
         remapped = map_df.query(qry)
-
         new_name = column
-        if str(to_upper) == 'True':
-            # capitalize each word
-            new_name = column.upper()
 
         if len(remapped) > 0:
             row = remapped.iloc[0]
-
-            # if the field is empty, just use the existing column name
-            if not pd.isna(row[dest_field]):
-                if char_replace_mode != 'no':
-                    replace_char = '_'
-                    if char_replace_mode == 'delete':
-                        replace_char = ''
-                    
-                    # remove puncuation
-                    new_name = re.sub(r'(?<=[.?!])( +|\Z)', replace_char, row[dest_field])
-                    # replace non-alphanumeric characters 
-                    new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
-                    
-
-            # remove trailing underscore
-            if new_name.endswith('_'):
-                new_name = new_name.rstrip(new_name[-1])
 
             # handling duplicate column names
             if new_name in new_names:
@@ -73,11 +94,13 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
             if desc_field != '':
                 comments[new_name.lower()] = row[desc_field]
 
+            new_name = char_replacements(new_name, to_upper, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
             # the actual SQL renaming
             sql += '"' + row[source_field] + '" AS "' + new_name + '",'
 
             remapped_cols.append(row[source_field])
         else:
+            new_name = char_replacements(new_name, to_upper, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
             print(f'No mapping found for {column}')
             sql += f'"{column}" AS "{new_name}",'
 

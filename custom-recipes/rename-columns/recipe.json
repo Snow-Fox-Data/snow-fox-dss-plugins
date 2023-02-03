@@ -10,7 +10,6 @@
         "icon": "icon-random"
     },
     "kind": "PYTHON",
-    
     "inputRoles": [
         {
             "name": "source_dataset",
@@ -29,7 +28,6 @@
             "mustBeSQL": true
         }
     ],
-
     "outputRoles": [
         {
             "name": "output_dataset",
@@ -40,9 +38,7 @@
             "acceptsDataset": true
         }
     ],
-
     "selectableFromDataset": "source_dataset",
-
     "params": [
         {
             "name": "source_field",
@@ -50,54 +46,121 @@
             "type": "COLUMN",
             "mandatory": true,
             "columnRole": "mapping_dataset",
-             "description": "Name of the column from Mapping file containing the original column names"
+            "description": "Name of the column from Mapping file containing the original column names"
         },
-         {
+        {
             "name": "target_field",
             "label": "Renamed Column",
             "type": "COLUMN",
-             "description": "Name of the column from Mapping file containing the new column names",
+            "description": "Name of the column from Mapping file containing the new column names",
             "mandatory": true,
             "columnRole": "mapping_dataset"
         },
-         {
+        {
             "name": "desc_field",
             "label": "Description Column",
             "type": "COLUMN",
-             "description": "Optional Description field",
+            "description": "Optional Description field",
             "mandatory": false,
             "columnRole": "mapping_dataset"
-        }, {
+        },
+        {
             "name": "table_field",
             "label": "Dataset Identifier Column",
             "type": "COLUMN",
             "mandatory": false,
             "columnRole": "mapping_dataset",
-             "description": "Optional column from the Mapping file containing unique dataset identifiers. Used if your mapping dataset contains metadata for multiple datasets. If you don't know this, just leave it blank."
+            "description": "Optional column from the Mapping file containing unique dataset identifiers. Used if your mapping dataset contains metadata for multiple datasets. If you don't know this, just leave it blank."
         },
-         {
+        {
             "name": "table_name",
             "label": "Table name",
             "type": "STRING",
             "mandatory": false,
-             "description": "If 'Dataset Identifier Column' is specified, name of the dataset to match. If you don't know this, just leave it blank."
-        },{
-        "type": "SELECT",
-        "name": "char_replace",
-        "label": "Replace special characters?",
-        "selectChoices": [
-          { "value": "no", "label": "Do not replace"},
-          { "value": "underscore", "label": "Replace with underscore"},
-          { "value": "delete", "label": "Delete the character"}
-        ]
-      },{
-        "type": "BOOLEAN",
-        "name": "to_upper",
-        "label": "Convert column names to uppercase",
-        "defaultValue": false
-      }
+            "description": "If 'Dataset Identifier Column' is specified, name of the dataset to match. If you don't know this, just leave it blank."
+        },
+        {
+            "type": "BOOLEAN",
+            "name": "to_upper",
+            "label": "Convert column names to uppercase",
+            "defaultValue": false
+        },
+        {
+            "type": "SELECT",
+            "name": "space_replace",
+            "label": "Replace spaces?",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not replace"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Replace with underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        },
+        {
+            "type": "SELECT",
+            "name": "special_char_replace",
+            "label": "Replace special characters?",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not replace"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Replace with underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        },
+        {
+            "type": "SELECT",
+            "name": "dollar_char_replace",
+            "label": "Replace $ characters?",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not replace"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Replace with underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        },
+        {
+            "type": "SELECT",
+            "name": "start_char_replace",
+            "label": "If column starts with $ or digit",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Leave as-is"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Append an underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        }
     ],
-
     "resourceKeys": []
-
 }
