@@ -22,10 +22,10 @@ def char_replacements(col_name, to_upper, space_replace, special_char_replace, d
 
     if start_char_replace != 'no':
         if start_char_replace == 'underscore':
-            if new_name[0].isdigit():
+            if new_name[0].isdigit() or new_name['0'] == '$':
                 new_name = '_' + new_name
         else:
-            while new_name[0].isdigit():
+            while new_name[0].isdigit() or new_name['0'] == '$':
                 new_name = new_name[1:]
     
     # if the field is empty, just use the existing column name
@@ -35,7 +35,8 @@ def char_replacements(col_name, to_upper, space_replace, special_char_replace, d
             replace_char = ''
         
         # remove puncuation
-        new_name = re.sub(r'(?<=[.?!])(+|\Z)', replace_char, new_name)
+        # new_name = re.sub(r'(?<=[.?!])(+|\Z)', replace_char, new_name)
+        new_name = re.sub('[^a-zA-Z0-9\n\.]', replace_char, new_name)
         # replace non-alphanumeric characters 
         # new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
         
