@@ -98,13 +98,13 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
             if desc_field != '':
                 comments[new_name.lower()] = row[desc_field]
 
-            new_name = char_replacements(new_name, to_upper, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
+            new_name = char_replacements(new_name, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
             # the actual SQL renaming
             sql += '"' + row[source_field] + '" AS "' + new_name + '",'
 
             remapped_cols.append(row[source_field])
         else:
-            new_name = char_replacements(new_name, to_upper, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
+            new_name = char_replacements(new_name, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
             print(f'No mapping found for {column}')
             sql += f'"{column}" AS "{new_name}",'
 
