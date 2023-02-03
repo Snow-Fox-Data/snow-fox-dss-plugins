@@ -37,7 +37,7 @@ def char_replacements(col_name, to_upper, space_replace, special_char_replace, d
         # remove puncuation
         # new_name = re.sub(r'(?<=[.?!])(+|\Z)', replace_char, new_name)
         chars = re.escape(string.punctuation)
-        new_name = re.sub('['+chars+']', '', new_name)
+        new_name = re.sub('['+chars+']', replace_char, new_name)
         
     # remove trailing underscore
     if new_name.endswith('_'):
