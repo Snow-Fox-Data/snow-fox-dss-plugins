@@ -89,6 +89,7 @@
             "type": "SELECT",
             "name": "space_replace",
             "label": "Replace spaces?",
+            "defaultValue": "no",
             "selectChoices": [
                 {
                     "value": "no",
@@ -107,6 +108,7 @@
         {
             "type": "SELECT",
             "name": "special_char_replace",
+            "defaultValue": "no",
             "label": "Replace special characters?",
             "selectChoices": [
                 {
@@ -126,6 +128,7 @@
         {
             "type": "SELECT",
             "name": "dollar_char_replace",
+            "defaultValue": "no",
             "label": "Replace $ characters?",
             "selectChoices": [
                 {
@@ -145,6 +148,7 @@
         {
             "type": "SELECT",
             "name": "start_char_replace",
+            "defaultValue": "no",
             "label": "If column starts with $ or digit",
             "selectChoices": [
                 {

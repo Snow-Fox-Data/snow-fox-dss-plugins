@@ -84,6 +84,10 @@ def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, so
         if len(remapped) > 0:
             row = remapped.iloc[0]
 
+            # the mapped renaming
+            if not pd.isna(row[dest_field]):
+                new_name = row[dest_field]
+
             # handling duplicate column names
             if new_name in new_names:
                 new_names[new_name] += 1
