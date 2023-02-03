@@ -38,14 +38,14 @@ def char_replacements(col_name, to_upper, space_replace, special_char_replace, d
         # new_name = re.sub(r'(?<=[.?!])(+|\Z)', replace_char, new_name)
         chars = re.escape(string.punctuation)
         new_name = re.sub('['+chars+']', '', new_name)
-
-        # new_name = re.sub('[^a-zA-Z0-9\n\.]', replace_char, new_name)
-        # replace non-alphanumeric characters 
-        # new_name = re.sub(r'[^a-zA-Z0-9_]', replace_char, new_name)
         
     # remove trailing underscore
     if new_name.endswith('_'):
         new_name = new_name.rstrip(new_name[-1])
+    
+    # getting rid of many underscores
+    while '__' in new_name:
+        new_name = new_name.replace('__', '_', 1)
 
     if str(to_upper) == 'True':
         # capitalize each word
