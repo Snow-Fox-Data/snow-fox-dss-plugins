@@ -73,7 +73,7 @@ except Exception as e:
     })
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-vals
+
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: MARKDOWN
 # ## Metrics
@@ -112,7 +112,8 @@ for user in dss_users:
 print(user_list)
 
 vals['dss_user_count'] = len(user_list)
-
+print(f'sending: {vals}')
+print(f'sending: {vals_str}')
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 ts = time.time()
 utc_offset = int((datetime.fromtimestamp(ts) -
@@ -161,15 +162,6 @@ finally:
 ctx.close()
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-result = []
-for val in vals:
-    result.append({
-        'key': val,
-        'value': vals[val],
-        'datetime': dt_string
-    })
-
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 # jobs
 if send_jobs == 'yes':
     projects = []
@@ -193,7 +185,7 @@ if send_jobs == 'yes':
 
             latest_job = last_job_time
             for j in new_jobs:
-                #         print(j)
+                print(f'sending job: {j["def"]["id"]}')
                 recipe = "NULL"
                 recipe_type = "NULL"
                 if 'recipe' in j['def']:
