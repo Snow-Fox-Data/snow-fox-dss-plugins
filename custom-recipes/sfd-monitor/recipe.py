@@ -183,6 +183,7 @@ if send_jobs == 'yes':
             #     running_jobs = [job for job in jobs if job['stableState'] == False]
             new_jobs = [job for job in jobs if job['startTime'] > last_job_time]
 
+            latest_job = last_job_time
             for j in new_jobs:
         #         print(j)
                 recipe = "NULL"
@@ -193,7 +194,11 @@ if send_jobs == 'yes':
                     status = recipe_dss.get_status()
                     recipe_type = "'" + status.get_selected_engine_details()['type'] + "'"
 
+
                 st = datetime.fromtimestamp(j['startTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
+
+                if j['startTime'] > latest_job:
+                    latest_job = j['startTime']
 
                 et = 'NULL'
                 total_seconds = 'NULL'
@@ -202,6 +207,9 @@ if send_jobs == 'yes':
                     et = datetime.fromtimestamp(j['endTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
 
                 sql_str += f"('{ACCT_UN}', '{j['def']['projectKey']}', '{j['def']['id']}', {recipe}, {recipe_type}, TO_TIMESTAMP_NTZ('{st}'), TO_TIMESTAMP_NTZ('{et}'), {total_seconds}),"
+
+            p_vars['sfd_monitor_last_job_time'] = latest_job
+            p.set_variables(p_vars)
 
         sql_str = sql_str[0:-1]
     except Exception as e:
