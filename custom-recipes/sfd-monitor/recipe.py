@@ -18,11 +18,11 @@ cfg = get_recipe_config()
 send_jobs = cfg['send_jobs']
 
 client = dataiku.api_client()
-p_vars = dataiku.get_custom_variables()
+p_vars = client.get_default_project().get_variables()
 
-ACCT_PW = p_vars['sfd_monitor_pw'] 
-ACCT_UN = p_vars['sfd_monitor_un']
-METRICS_TO_CHECK = eval(p_vars['sfd_monitor_metrics'])
+ACCT_PW = p_vars['standard']['sfd_monitor_pw'] 
+ACCT_UN = p_vars['standard']['sfd_monitor_un']
+METRICS_TO_CHECK = eval(p_vars['standard']['sfd_monitor_metrics'])
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 dss_version = json.load(open(os.path.join(os.environ["DIP_HOME"], "dss-version.json")))["product_version"]
@@ -173,8 +173,8 @@ if send_jobs == 'yes':
             projects.append(client.get_project(p))
 
         last_job_time = int((datetime.now() - timedelta(days=1)).strftime('%s')) * 1000
-        if 'sfd_monitor_last_job_time' in p_vars:
-            last_job_time = p_vars['sfd_monitor_last_job_time']
+        if 'sfd_monitor_last_job_time' in p_vars['standard']:
+            last_job_time = p_vars['standard']['sfd_monitor_last_job_time']
 
         sql_str = f"INSERT INTO SNOWFOX_MONITOR.SFD.DSS_JOBS (\"account\", \"project\", \"job_id\", \"recipe\", \"recipe_engine\", \"started\", \"ended\", \"total_seconds\") VALUES "
 
@@ -208,8 +208,8 @@ if send_jobs == 'yes':
 
                 sql_str += f"('{ACCT_UN}', '{j['def']['projectKey']}', '{j['def']['id']}', {recipe}, {recipe_type}, TO_TIMESTAMP_NTZ('{st}'), TO_TIMESTAMP_NTZ('{et}'), {total_seconds}),"
 
-            p_vars['sfd_monitor_last_job_time'] = latest_job
-            p.set_variables(p_vars)
+            p_vars['standard']['sfd_monitor_last_job_time'] = latest_job
+            client.get_default_project().set_variables(p_vars)
 
         sql_str = sql_str[0:-1]
     except Exception as e:
