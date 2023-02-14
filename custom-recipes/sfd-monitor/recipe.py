@@ -1,11 +1,13 @@
 import dataiku
 from dataiku.customrecipe import *
-import pandas as pd, numpy as np
+import pandas as pd
+import numpy as np
 from dataiku import pandasutils as pdu
 from datetime import datetime, timezone, timedelta
 import snowflake.connector
-import time 
-import json, os
+import time
+import json
+import os
 import psutil
 
 # Output
@@ -20,12 +22,13 @@ send_jobs = cfg['send_jobs']
 client = dataiku.api_client()
 p_vars = client.get_default_project().get_variables()
 
-ACCT_PW = p_vars['standard']['sfd_monitor_pw'] 
+ACCT_PW = p_vars['standard']['sfd_monitor_pw']
 ACCT_UN = p_vars['standard']['sfd_monitor_un']
-METRICS_TO_CHECK = eval(p_vars['standard']['sfd_monitor_metrics'])
+METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_metrics']
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-dss_version = json.load(open(os.path.join(os.environ["DIP_HOME"], "dss-version.json")))["product_version"]
+dss_version = json.load(open(os.path.join(
+    os.environ["DIP_HOME"], "dss-version.json")))["product_version"]
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 vals_str = {
@@ -62,7 +65,7 @@ try:
         vals[f'disk{d_name}_used_gb'] = usage.used/1000000000
         vals[f'disk{d_name}_free_gb'] = usage.free/1000000000
         vals[f'disk{d_name}_used_pct'] = usage.percent
-        
+
 except Exception as e:
     errors.append({
         'type': 'system',
@@ -86,12 +89,13 @@ for metric_to_check in METRICS_TO_CHECK:
         ds = project.get_dataset(ds_name)
 
         last_val = ds.get_last_metric_values().get_global_value(metric_name)
-    
+
         vals[metric_to_check] = last_val
     except Exception as e:
         errors.append({
             'type': 'metric',
-            'exception': str(e)
+            'exception': str(e),
+            'date': datetime.now()
         })
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: MARKDOWN
@@ -112,7 +116,7 @@ vals['dss_user_count'] = len(user_list)
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 ts = time.time()
 utc_offset = int((datetime.fromtimestamp(ts) -
-              datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
+                  datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 dt_string = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -130,8 +134,9 @@ try:
 except Exception as e:
     errors.append({
         'type': 'sql_val_gen',
-        'exception': str(e)
-    })   
+        'exception': str(e),
+        'date': datetime.now()
+    })
 
 ctx = snowflake.connector.connect(
     user=ACCT_UN,
@@ -139,7 +144,7 @@ ctx = snowflake.connector.connect(
     account='oh20501.us-east-1',
     warehouse="COMPUTE_WH",
     schema="SNOWFOX_MONITOR.SFD"
-    )
+)
 
 cs = ctx.cursor()
 try:
@@ -147,11 +152,12 @@ try:
 except Exception as e:
     errors.append({
         'type': 'sql',
-        'exception': str(e)
-    })    
+        'exception': str(e),
+        'date': datetime.now()
+    })
 finally:
     cs.close()
-    
+
 ctx.close()
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
@@ -160,7 +166,7 @@ for val in vals:
     result.append({
         'key': val,
         'value': vals[val],
-        'datetime':dt_string
+        'datetime': dt_string
     })
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
@@ -172,7 +178,8 @@ if send_jobs == 'yes':
         for p in plist:
             projects.append(client.get_project(p))
 
-        last_job_time = int((datetime.now() - timedelta(days=1)).strftime('%s')) * 1000
+        last_job_time = int(
+            (datetime.now() - timedelta(days=1)).strftime('%s')) * 1000
         if 'sfd_monitor_last_job_time' in p_vars['standard']:
             last_job_time = p_vars['standard']['sfd_monitor_last_job_time']
 
@@ -181,21 +188,23 @@ if send_jobs == 'yes':
         for project in projects:
             jobs = project.list_jobs()
             #     running_jobs = [job for job in jobs if job['stableState'] == False]
-            new_jobs = [job for job in jobs if job['startTime'] > last_job_time]
+            new_jobs = [
+                job for job in jobs if job['startTime'] > last_job_time]
 
             latest_job = last_job_time
             for j in new_jobs:
-        #         print(j)
+                #         print(j)
                 recipe = "NULL"
                 recipe_type = "NULL"
                 if 'recipe' in j['def']:
                     recipe = "'" + j['def']['recipe'] + "'"
                     recipe_dss = project.get_recipe(j['def']['recipe'])
                     status = recipe_dss.get_status()
-                    recipe_type = "'" + status.get_selected_engine_details()['type'] + "'"
+                    recipe_type = "'" + \
+                        status.get_selected_engine_details()['type'] + "'"
 
-
-                st = datetime.fromtimestamp(j['startTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
+                st = datetime.fromtimestamp(
+                    j['startTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
 
                 if j['startTime'] > latest_job:
                     latest_job = j['startTime']
@@ -204,7 +213,8 @@ if send_jobs == 'yes':
                 total_seconds = 'NULL'
                 if 'endTime' in j:
                     total_seconds = (j['endTime'] - j['startTime']) / 1000
-                    et = datetime.fromtimestamp(j['endTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
+                    et = datetime.fromtimestamp(
+                        j['endTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
 
                 sql_str += f"('{ACCT_UN}', '{j['def']['projectKey']}', '{j['def']['id']}', {recipe}, {recipe_type}, TO_TIMESTAMP_NTZ('{st}'), TO_TIMESTAMP_NTZ('{et}'), {total_seconds}),"
 
@@ -215,8 +225,9 @@ if send_jobs == 'yes':
     except Exception as e:
         errors.append({
             'type': 'sql_proj_gen',
-            'exception': str(e)
-        })  
+            'exception': str(e),
+            'date': datetime.now()
+        })
 
     # print(sql_str)
     ctx = snowflake.connector.connect(
@@ -225,7 +236,7 @@ if send_jobs == 'yes':
         account='oh20501.us-east-1',
         warehouse="COMPUTE_WH",
         schema="SNOWFOX_MONITOR.SFD"
-        )
+    )
 
     cs = ctx.cursor()
     try:
@@ -233,11 +244,12 @@ if send_jobs == 'yes':
     except Exception as e:
         errors.append({
             'type': 'sql',
-            'exception': str(e)
+            'exception': str(e),
+            'date': datetime.now()
         })
     finally:
         cs.close()
-        
+
     ctx.close()
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
