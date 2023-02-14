@@ -177,13 +177,14 @@ if send_jobs == 'yes':
 
         sql_str = f"INSERT INTO SNOWFOX_MONITOR.SFD.DSS_JOBS (\"account\", \"project\", \"job_id\", \"recipe\", \"recipe_engine\", \"started\", \"ended\", \"total_seconds\") VALUES "
 
+
+        latest_job = last_job_time
         for project in projects:
             jobs = project.list_jobs()
             #     running_jobs = [job for job in jobs if job['stableState'] == False]
             new_jobs = [
                 job for job in jobs if job['startTime'] > last_job_time]
 
-            latest_job = last_job_time
             for j in new_jobs:
                 print(f'sending job: {j["def"]["id"]}')
                 recipe = "NULL"
