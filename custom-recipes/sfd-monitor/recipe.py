@@ -19,13 +19,16 @@ output_ds = output_datasets[0]
 
 # Config
 cfg = get_recipe_config()
-send_jobs = cfg['send_jobs']
+# send_jobs = cfg['send_jobs']
+send_jobs = 'no'
 
 client = dataiku.api_client()
 p_vars = client.get_default_project().get_variables()
 
-ACCT_PW = p_vars['standard']['sfd_monitor_pw']
-ACCT_UN = p_vars['standard']['sfd_monitor_un']
+SFD_CONN_NAME = "sfd-monitor"
+if "sfd-monitor-conn" in p_vars['standard']:
+    SFD_CONN_NAME = p_vars['standard']['sfd-monitor-conn']
+
 METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_metrics']
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
@@ -104,16 +107,19 @@ for metric_to_check in METRICS_TO_CHECK:
 # ## Users
 dss_users = client.list_users()
 
-user_list = []
+connected_user_ct = 0
+enabled_user_ct = 0
 
 # Grab list of users where they have active web socket sessions
 for user in dss_users:
     if user['activeWebSocketSesssions'] != 0:
-        user_list.append(user['displayName'])
-print(user_list)
+        connected_user_ct += 1
+    if user['enabled']:
+        enabled_user_ct += 1
 
-vals['dss_user_count'] = len(user_list)
-
+vals['dss_user_connected_count'] = connected_user_ct
+vals['dss_user_enabled_count'] = enabled_user_ct
+vals['dss_project_count'] = len(client.list_project_keys())
 
 print(f'sending: {vals}')
 print(f'sending: {vals_str}')
@@ -171,15 +177,15 @@ try:
         qry += f"('{ACCT_UN}', '{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
 
     qry = qry[0:-1]
+
+    executor = SQLExecutor2(connection=SFD_CONN_NAME)
+    executor.query_to_df(qry, post_queries=['COMMIT'])
 except Exception as e:
     errors.append({
         'type': 'sql_val_gen',
         'exception': str(e),
         'date': datetime.now()
     })
-
-executor = SQLExecutor2(connection="sfd-monitor-pg")
-executor.query_to_df(qry, post_queries=['COMMIT'])
 
 # jobs
 if send_jobs == 'yes':

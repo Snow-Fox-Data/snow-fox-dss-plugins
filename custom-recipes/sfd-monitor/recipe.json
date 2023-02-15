@@ -25,23 +25,22 @@
     ],
     "selectableFromDataset": "source_dataset",
     "params": [
-        
-        {
-            "type": "SELECT",
-            "name": "send_jobs",
-            "defaultValue": "yes",
-            "label": "Send Jobs",
-            "selectChoices": [
-                {
-                    "value": "no",
-                    "label": "No"
-                },
-                {
-                    "value": "yes",
-                    "label": "Yes"
-                }
-            ]
-        }
+        // {
+        //     "type": "SELECT",
+        //     "name": "send_jobs",
+        //     "defaultValue": "yes",
+        //     "label": "Send Jobs",
+        //     "selectChoices": [
+        //         {
+        //             "value": "no",
+        //             "label": "No"
+        //         },
+        //         {
+        //             "value": "yes",
+        //             "label": "Yes"
+        //         }
+        //     ]
+        // }
     ],
     "resourceKeys": []
 }
