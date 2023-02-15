@@ -48,10 +48,10 @@ try:
     # Getting % usage of virtual_memory ( 3rd field)
     vmem = psutil.virtual_memory()
 
-    vals['cpu_util_pct']: vcpu
-    vals['ram_used_pct']: vmem.percent
-    vals['ram_used_gb']: vmem.used/1000000000
-    vals['ram_free_gb']: vmem.free/1000000000
+    vals['cpu_util_pct'] = vcpu
+    vals['ram_used_pct'] = vmem.percent
+    vals['ram_used_gb'] = vmem.used/1000000000
+    vals['ram_free_gb'] = vmem.free/1000000000
 
     # disks
     disks = psutil.disk_partitions(all=False)
@@ -100,11 +100,10 @@ for metric_to_check in METRICS_TO_CHECK:
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: MARKDOWN
 # ## Users
-
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 dss_users = client.list_users()
 
 user_list = []
+
 # Grab list of users where they have active web socket sessions
 for user in dss_users:
     if user['activeWebSocketSesssions'] != 0:
@@ -112,14 +111,14 @@ for user in dss_users:
 print(user_list)
 
 vals['dss_user_count'] = len(user_list)
+
+
 print(f'sending: {vals}')
 print(f'sending: {vals_str}')
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+
 ts = time.time()
 utc_offset = int((datetime.fromtimestamp(ts) -
                   datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
-
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 dt_string = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 try:
@@ -161,7 +160,6 @@ finally:
 
 ctx.close()
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 # jobs
 if send_jobs == 'yes':
     projects = []
@@ -245,6 +243,5 @@ if send_jobs == 'yes':
 
     ctx.close()
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 # Write recipe outputs
 output_ds.write_with_schema(pd.DataFrame.from_dict(errors))
