@@ -1,10 +1,12 @@
+from dataiku import SQLExecutor2
 import dataiku
 from dataiku.customrecipe import *
 import pandas as pd
 import numpy as np
 from dataiku import pandasutils as pdu
 from datetime import datetime, timezone, timedelta
-import snowflake.connector
+# import snowflake.connector
+from dataiku import SQLExecutor2
 import time
 import json
 import os
@@ -121,8 +123,46 @@ utc_offset = int((datetime.fromtimestamp(ts) -
                   datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
 dt_string = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
+# snowflake
+# try:
+#     qry = f"INSERT INTO SNOWFOX_MONITOR.SFD.TS_DATA (\"account\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
+
+#     for key in vals:
+#         qry += f"('{ACCT_UN}', TO_TIMESTAMP_NTZ('{dt_string}'), '{key}', {vals[key]}, NULL, {utc_offset}),"
+
+#     for key in vals_str:
+#         qry += f"('{ACCT_UN}', TO_TIMESTAMP_NTZ('{dt_string}'), '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
+
+#     qry = qry[0:-1]
+
+# ctx = snowflake.connector.connect(
+#     user=ACCT_UN,
+#     password=ACCT_PW,
+#     account='oh20501.us-east-1',
+#     warehouse="COMPUTE_WH",
+#     schema="SNOWFOX_MONITOR.SFD"
+# )
+# cs = ctx.cursor()
+# try:
+#     cs.execute(qry)
+# except Exception as e:
+#     errors.append({
+#         'type': 'sql',
+#         'exception': str(e),
+#         'date': datetime.now()
+#     })
+# finally:
+#     cs.close()
+
+# ctx.close()
+# except Exception as e:
+#     errors.append({
+#         'type': 'sql_val_gen',
+#         'exception': str(e),
+#         'date': datetime.now()
+#     })
 try:
-    qry = f"INSERT INTO SNOWFOX_MONITOR.SFD.TS_DATA (\"account\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
+    qry = f"INSERT INTO dataiku.ts_data (\"account\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
     for key in vals:
         qry += f"('{ACCT_UN}', TO_TIMESTAMP_NTZ('{dt_string}'), '{key}', {vals[key]}, NULL, {utc_offset}),"
@@ -138,27 +178,8 @@ except Exception as e:
         'date': datetime.now()
     })
 
-ctx = snowflake.connector.connect(
-    user=ACCT_UN,
-    password=ACCT_PW,
-    account='oh20501.us-east-1',
-    warehouse="COMPUTE_WH",
-    schema="SNOWFOX_MONITOR.SFD"
-)
-
-cs = ctx.cursor()
-try:
-    cs.execute(qry)
-except Exception as e:
-    errors.append({
-        'type': 'sql',
-        'exception': str(e),
-        'date': datetime.now()
-    })
-finally:
-    cs.close()
-
-ctx.close()
+executor = SQLExecutor2(connection="sfd-monitor-pg")
+executor.query_to_df(qry, post_queries=['COMMIT'])
 
 # jobs
 if send_jobs == 'yes':
@@ -174,7 +195,6 @@ if send_jobs == 'yes':
             last_job_time = p_vars['standard']['sfd_monitor_last_job_time']
 
         sql_str = f"INSERT INTO SNOWFOX_MONITOR.SFD.DSS_JOBS (\"account\", \"project\", \"job_id\", \"recipe\", \"recipe_engine\", \"started\", \"ended\", \"total_seconds\") VALUES "
-
 
         latest_job = last_job_time
         for project in projects:
