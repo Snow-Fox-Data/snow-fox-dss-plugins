@@ -26,8 +26,8 @@ client = dataiku.api_client()
 p_vars = client.get_default_project().get_variables()
 
 SFD_CONN_NAME = "sfd-monitor"
-if "sfd-monitor-conn" in p_vars['standard']:
-    SFD_CONN_NAME = p_vars['standard']['sfd-monitor-conn']
+if "sfd_monitor_conn" in p_vars['standard']:
+    SFD_CONN_NAME = p_vars['standard']['sfd_monitor_conn']
 
 ACCT_UN = client.list_connections()[SFD_CONN_NAME]['params']['user']
 
