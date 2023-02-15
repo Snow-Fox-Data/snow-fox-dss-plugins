@@ -165,10 +165,10 @@ try:
     qry = f"INSERT INTO dataiku.ts_data (\"account\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
     for key in vals:
-        qry += f"('{ACCT_UN}', TO_TIMESTAMP_NTZ('{dt_string}'), '{key}', {vals[key]}, NULL, {utc_offset}),"
+        qry += f"('{ACCT_UN}', '{dt_string}', '{key}', {vals[key]}, NULL, {utc_offset}),"
 
     for key in vals_str:
-        qry += f"('{ACCT_UN}', TO_TIMESTAMP_NTZ('{dt_string}'), '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
+        qry += f"('{ACCT_UN}', '{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
 
     qry = qry[0:-1]
 except Exception as e:
