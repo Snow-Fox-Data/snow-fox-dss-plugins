@@ -29,6 +29,8 @@ SFD_CONN_NAME = "sfd-monitor"
 if "sfd-monitor-conn" in p_vars['standard']:
     SFD_CONN_NAME = p_vars['standard']['sfd-monitor-conn']
 
+ACCT_UN = client.list_connections()[SFD_CONN_NAME]['params']['user']
+
 METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_metrics']
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
