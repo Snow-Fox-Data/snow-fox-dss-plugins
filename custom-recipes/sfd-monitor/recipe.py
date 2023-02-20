@@ -200,7 +200,10 @@ except Exception as e:
 if dss_commit_df is not None:
     try:
         print(f'sending {len(dss_commit_df)} commits')
-        
+
+        if 'sfd_monitor_dss_commit' in p_vars['standard']:
+            dss_commit_df = dss_commit_df.query(f'timestamp>{p_vars["standard"]["sfd_monitor_dss_commit"]}')
+
         qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
 
         for idx, row in dss_commit_df.iterrows():
@@ -215,6 +218,8 @@ if dss_commit_df is not None:
 
         executor = SQLExecutor2(connection=SFD_CONN_NAME)
         executor.query_to_df(qry, post_queries=['COMMIT'])
+
+        p_vars['standard']['sfd_monitor_dss_commit'] = dss_commit_df['timestamp'].max()
     except Exception as e:
         errors.append({
             'type': 'dss_commits',
@@ -224,86 +229,87 @@ if dss_commit_df is not None:
 
 
 # jobs
-if send_jobs == 'yes':
-    projects = []
-    try:
-        plist = client.list_project_keys()
-        for p in plist:
-            projects.append(client.get_project(p))
+# if send_jobs == 'yes':
+#     projects = []
+#     try:
+#         plist = client.list_project_keys()
+#         for p in plist:
+#             projects.append(client.get_project(p))
 
-        last_job_time = int(
-            (datetime.now() - timedelta(days=1)).strftime('%s')) * 1000
-        if 'sfd_monitor_last_job_time' in p_vars['standard']:
-            last_job_time = p_vars['standard']['sfd_monitor_last_job_time']
+#         last_job_time = int(
+#             (datetime.now() - timedelta(days=1)).strftime('%s')) * 1000
+#         if 'sfd_monitor_last_job_time' in p_vars['standard']:
+#             last_job_time = p_vars['standard']['sfd_monitor_last_job_time']
 
-        sql_str = f"INSERT INTO SNOWFOX_MONITOR.SFD.DSS_JOBS (\"account\", \"project\", \"job_id\", \"recipe\", \"recipe_engine\", \"started\", \"ended\", \"total_seconds\") VALUES "
+#         sql_str = f"INSERT INTO SNOWFOX_MONITOR.SFD.DSS_JOBS (\"account\", \"project\", \"job_id\", \"recipe\", \"recipe_engine\", \"started\", \"ended\", \"total_seconds\") VALUES "
 
-        latest_job = last_job_time
-        for project in projects:
-            jobs = project.list_jobs()
-            #     running_jobs = [job for job in jobs if job['stableState'] == False]
-            new_jobs = [
-                job for job in jobs if job['startTime'] > last_job_time]
+#         latest_job = last_job_time
+#         for project in projects:
+#             jobs = project.list_jobs()
+#             #     running_jobs = [job for job in jobs if job['stableState'] == False]
+#             new_jobs = [
+#                 job for job in jobs if job['startTime'] > last_job_time]
 
-            for j in new_jobs:
-                print(f'sending job: {j["def"]["id"]}')
-                recipe = "NULL"
-                recipe_type = "NULL"
-                if 'recipe' in j['def']:
-                    recipe = "'" + j['def']['recipe'] + "'"
-                    recipe_dss = project.get_recipe(j['def']['recipe'])
-                    status = recipe_dss.get_status()
-                    recipe_type = "'" + \
-                        status.get_selected_engine_details()['type'] + "'"
+#             for j in new_jobs:
+#                 print(f'sending job: {j["def"]["id"]}')
+#                 recipe = "NULL"
+#                 recipe_type = "NULL"
+#                 if 'recipe' in j['def']:
+#                     recipe = "'" + j['def']['recipe'] + "'"
+#                     recipe_dss = project.get_recipe(j['def']['recipe'])
+#                     status = recipe_dss.get_status()
+#                     recipe_type = "'" + \
+#                         status.get_selected_engine_details()['type'] + "'"
 
-                st = datetime.fromtimestamp(
-                    j['startTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
+#                 st = datetime.fromtimestamp(
+#                     j['startTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
 
-                if j['startTime'] > latest_job:
-                    latest_job = j['startTime']
+#                 if j['startTime'] > latest_job:
+#                     latest_job = j['startTime']
 
-                et = 'NULL'
-                total_seconds = 'NULL'
-                if 'endTime' in j:
-                    total_seconds = (j['endTime'] - j['startTime']) / 1000
-                    et = datetime.fromtimestamp(
-                        j['endTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
+#                 et = 'NULL'
+#                 total_seconds = 'NULL'
+#                 if 'endTime' in j:
+#                     total_seconds = (j['endTime'] - j['startTime']) / 1000
+#                     et = datetime.fromtimestamp(
+#                         j['endTime']/1000).strftime("%Y-%m-%d %H:%M:%S")
 
-                sql_str += f"('{ACCT_UN}', '{j['def']['projectKey']}', '{j['def']['id']}', {recipe}, {recipe_type}, TO_TIMESTAMP_NTZ('{st}'), TO_TIMESTAMP_NTZ('{et}'), {total_seconds}),"
+#                 sql_str += f"('{ACCT_UN}', '{j['def']['projectKey']}', '{j['def']['id']}', {recipe}, {recipe_type}, TO_TIMESTAMP_NTZ('{st}'), TO_TIMESTAMP_NTZ('{et}'), {total_seconds}),"
 
-            p_vars['standard']['sfd_monitor_last_job_time'] = latest_job
-            client.get_default_project().set_variables(p_vars)
+#             p_vars['standard']['sfd_monitor_last_job_time'] = latest_job
+            
+#         sql_str = sql_str[0:-1]
+#     except Exception as e:
+#         errors.append({
+#             'type': 'sql_proj_gen',
+#             'exception': str(e),
+#             'date': datetime.now()
+#         })
 
-        sql_str = sql_str[0:-1]
-    except Exception as e:
-        errors.append({
-            'type': 'sql_proj_gen',
-            'exception': str(e),
-            'date': datetime.now()
-        })
+#     # print(sql_str)
+#     ctx = snowflake.connector.connect(
+#         user=ACCT_UN,
+#         password=ACCT_PW,
+#         account='oh20501.us-east-1',
+#         warehouse="COMPUTE_WH",
+#         schema="SNOWFOX_MONITOR.SFD"
+#     )
 
-    # print(sql_str)
-    ctx = snowflake.connector.connect(
-        user=ACCT_UN,
-        password=ACCT_PW,
-        account='oh20501.us-east-1',
-        warehouse="COMPUTE_WH",
-        schema="SNOWFOX_MONITOR.SFD"
-    )
+#     cs = ctx.cursor()
+#     try:
+#         cs.execute(sql_str)
+#     except Exception as e:
+#         errors.append({
+#             'type': 'sql',
+#             'exception': str(e),
+#             'date': datetime.now()
+#         })
+#     finally:
+#         cs.close()
 
-    cs = ctx.cursor()
-    try:
-        cs.execute(sql_str)
-    except Exception as e:
-        errors.append({
-            'type': 'sql',
-            'exception': str(e),
-            'date': datetime.now()
-        })
-    finally:
-        cs.close()
+#     ctx.close()
 
-    ctx.close()
+client.get_default_project().set_variables(p_vars)
 
 # Write recipe outputs
 output_ds.write_with_schema(pd.DataFrame.from_dict(errors))
