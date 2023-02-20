@@ -199,7 +199,9 @@ except Exception as e:
 # commits
 if dss_commit_df is not None:
     try:
-        qry = f"INSERT INTO dataiku.dss_commits (\"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
+        print(f'sending {len(dss_commit_df)} commits')
+        
+        qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
 
         for idx, row in dss_commit_df.iterrows():
             proj = row['project_key']
@@ -209,7 +211,6 @@ if dss_commit_df is not None:
 
             qry += f"('{ACCT_UN}', '{proj}', '{commit}', '{author}', {timestamp}),"
 
-        print(f'sending {len(dss_commit_df)} commits')
         qry = qry[0:-1]
 
         executor = SQLExecutor2(connection=SFD_CONN_NAME)
