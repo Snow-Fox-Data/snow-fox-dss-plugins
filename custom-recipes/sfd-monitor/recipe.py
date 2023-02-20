@@ -219,7 +219,7 @@ if dss_commit_df is not None:
         executor = SQLExecutor2(connection=SFD_CONN_NAME)
         executor.query_to_df(qry, post_queries=['COMMIT'])
 
-        p_vars['standard']['sfd_monitor_dss_commit'] = dss_commit_df['timestamp'].max()
+        p_vars['standard']['sfd_monitor_dss_commit'] = str(dss_commit_df['timestamp'].max())
     except Exception as e:
         errors.append({
             'type': 'dss_commits',
