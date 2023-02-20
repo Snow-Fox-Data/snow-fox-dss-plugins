@@ -19,11 +19,10 @@ output_ds = output_datasets[0]
 
 # input
 dss_commit = get_input_names_for_role('dss_commits')
-
-dss_commit_ds = None
+dss_commit_df = None
 if len(dss_commit) > 0:
     dss_commits = [dataiku.Dataset(name) for name in dss_commit]
-    dss_commit_ds = dss_commits[0]
+    dss_commit_df = dss_commits[0].get_dataframe()
 
 # Config
 cfg = get_recipe_config()
@@ -198,11 +197,11 @@ except Exception as e:
     })
 
 # commits
-if dss_commit_ds is not None:
+if dss_commit_df is not None:
     try:
         qry = f"INSERT INTO dataiku.dss_commits (\"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
 
-        for idx, row in dss_commit_ds.iter_rows():
+        for idx, row in dss_commit_df.iter_rows():
             proj = row['project_key']
             commit = row['commit_id']
             author = row['author']
@@ -210,6 +209,7 @@ if dss_commit_ds is not None:
 
             qry += f"('{ACCT_UN}', '{proj}', '{commit}', '{author}', {timestamp}),"
 
+        print(f'sending {len(dss_commit_df)} commits')
         qry = qry[0:-1]
 
         executor = SQLExecutor2(connection=SFD_CONN_NAME)
