@@ -201,7 +201,7 @@ if dss_commit_df is not None:
     try:
         qry = f"INSERT INTO dataiku.dss_commits (\"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
 
-        for idx, row in dss_commit_df.iter_rows():
+        for idx, row in dss_commit_df.iterrows():
             proj = row['project_key']
             commit = row['commit_id']
             author = row['author']
