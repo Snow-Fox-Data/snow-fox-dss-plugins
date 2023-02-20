@@ -199,8 +199,11 @@ except Exception as e:
 # commits
 if dss_commit_df is not None:
     try:
+        tm_stmp = str(int((datetime.now() - timedelta(days=30)).strftime('%s')) * 1000)
         if 'sfd_monitor_dss_commit' in p_vars['standard']:
-            dss_commit_df = dss_commit_df.query(f'timestamp>{p_vars["standard"]["sfd_monitor_dss_commit"]}')
+            dss_commit_df = p_vars["standard"]["sfd_monitor_dss_commit"]
+
+        dss_commit_df = dss_commit_df.query(f'timestamp>{tm_stmp}')
             
         print(f'sending {len(dss_commit_df)} commits')
 
