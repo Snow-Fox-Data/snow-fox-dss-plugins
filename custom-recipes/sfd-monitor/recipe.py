@@ -202,6 +202,7 @@ if dss_commit_df is not None:
         print(f'sending {len(dss_commit_df)} commits')
 
         if 'sfd_monitor_dss_commit' in p_vars['standard']:
+            print(f'timestamp>{p_vars["standard"]["sfd_monitor_dss_commit"]}')
             dss_commit_df = dss_commit_df.query(f'timestamp>{p_vars["standard"]["sfd_monitor_dss_commit"]}')
 
         qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
