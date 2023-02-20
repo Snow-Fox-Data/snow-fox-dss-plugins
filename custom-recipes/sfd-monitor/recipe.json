@@ -11,7 +11,15 @@
     },
     "kind": "PYTHON",
     "inputRoles": [
-       
+        {
+            "name": "dss_commits",
+            "label": "DSS Commits",
+            "description": "DSS Commits Internal Dataset",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsSavedModel": false
+        }
     ],
     "outputRoles": [
         {

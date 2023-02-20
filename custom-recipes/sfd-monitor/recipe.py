@@ -17,6 +17,14 @@ output_dataset = get_output_names_for_role('output_dataset')
 output_datasets = [dataiku.Dataset(name) for name in output_dataset]
 output_ds = output_datasets[0]
 
+# input
+dss_commit = get_input_names_for_role('dss_commits')
+
+dss_commit_ds = None
+if len(dss_commit) > 0:
+    dss_commits = [dataiku.Dataset(name) for name in dss_commit]
+    dss_commit_ds = dss_commits[0]
+
 # Config
 cfg = get_recipe_config()
 # send_jobs = cfg['send_jobs']
@@ -101,7 +109,7 @@ for metric_to_check in METRICS_TO_CHECK:
     except Exception as e:
         errors.append({
             'type': 'metric',
-            'exception': str(e),
+            'exception': f'{metric_to_check}: {str(e)}',
             'date': datetime.now()
         })
 
@@ -188,6 +196,31 @@ except Exception as e:
         'exception': str(e),
         'date': datetime.now()
     })
+
+# commits
+if dss_commit_ds is not None:
+    try:
+        qry = f"INSERT INTO dataiku.dss_commits (\"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
+
+        for idx, row in dss_commit_ds.iter_rows():
+            proj = row['project_key']
+            commit = row['commit_id']
+            author = row['author']
+            timestamp = row['timestamp']
+
+            qry += f"('{ACCT_UN}', '{proj}', '{commit}', '{author}', {timestamp}),"
+
+        qry = qry[0:-1]
+
+        executor = SQLExecutor2(connection=SFD_CONN_NAME)
+        executor.query_to_df(qry, post_queries=['COMMIT'])
+    except Exception as e:
+        errors.append({
+            'type': 'dss_commits',
+            'exception': str(e),
+            'date': datetime.now()
+        })
+
 
 # jobs
 if send_jobs == 'yes':
