@@ -207,22 +207,23 @@ if dss_commit_df is not None:
             
         print(f'sending {len(dss_commit_df)} commits')
 
-        qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
+        if len(dss_commit_df) > 0:
+            qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
 
-        for idx, row in dss_commit_df.iterrows():
-            proj = row['project_key']
-            commit = row['commit_id']
-            author = row['author']
-            timestamp = row['timestamp']
+            for idx, row in dss_commit_df.iterrows():
+                proj = row['project_key']
+                commit = row['commit_id']
+                author = row['author']
+                timestamp = row['timestamp']
 
-            qry += f"('{ACCT_UN}', '{proj}', '{commit}', '{author}', {timestamp}),"
+                qry += f"('{ACCT_UN}', '{proj}', '{commit}', '{author}', {timestamp}),"
 
-        qry = qry[0:-1]
+            qry = qry[0:-1]
 
-        executor = SQLExecutor2(connection=SFD_CONN_NAME)
-        executor.query_to_df(qry, post_queries=['COMMIT'])
+            executor = SQLExecutor2(connection=SFD_CONN_NAME)
+            executor.query_to_df(qry, post_queries=['COMMIT'])
 
-        p_vars['standard']['sfd_monitor_dss_commit'] = str(dss_commit_df['timestamp'].max())
+            p_vars['standard']['sfd_monitor_dss_commit'] = str(dss_commit_df['timestamp'].max())
     except Exception as e:
         errors.append({
             'type': 'dss_commits',
