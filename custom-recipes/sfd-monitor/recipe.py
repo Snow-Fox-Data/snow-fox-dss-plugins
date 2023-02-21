@@ -39,6 +39,7 @@ if "sfd_monitor_conn" in p_vars['standard']:
 ACCT_UN = client.list_connections()[SFD_CONN_NAME]['params']['user']
 
 METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_metrics']
+STRING_METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_string_metrics']
 
 # -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
 dss_version = json.load(open(os.path.join(
@@ -108,6 +109,25 @@ for metric_to_check in METRICS_TO_CHECK:
     except Exception as e:
         errors.append({
             'type': 'metric',
+            'exception': f'{metric_to_check}: {str(e)}',
+            'date': datetime.now()
+        })
+
+for metric_to_check in STRING_METRICS_TO_CHECK:
+    try:
+        proj_name = metric_to_check.split('.')[0]
+        ds_name = metric_to_check.split('.')[1]
+        metric_name = metric_to_check.split('.')[2]
+
+        project = client.get_project(proj_name)
+        ds = project.get_dataset(ds_name)
+
+        last_val = ds.get_last_metric_values().get_global_value(metric_name)
+
+        vals_str[metric_to_check] = last_val
+    except Exception as e:
+        errors.append({
+            'type': 'metric_string',
             'exception': f'{metric_to_check}: {str(e)}',
             'date': datetime.now()
         })
