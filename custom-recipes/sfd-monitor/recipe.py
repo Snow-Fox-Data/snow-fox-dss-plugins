@@ -160,7 +160,7 @@ collect_user_project_data(vals, errors)
 print(f'sending: {vals}')
 print(f'sending: {vals_str}')
 
-def insert_records(vals, vals_str, errors):
+def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
     ts = time.time()
     utc_offset = int((datetime.fromtimestamp(ts) -
                     datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
@@ -188,7 +188,13 @@ def insert_records(vals, vals_str, errors):
     # jobs
     if dss_jobs_df is not None:
         try:
-            qry = f"INSERT INTO dataiku.dss_commits (\"account\","
+            tm_stmp = str(int((datetime.now() - timedelta(days=30)).strftime('%s')) * 1000)
+            if 'sfd_monitor_dss_commit' in p_vars['standard']:
+                tm_stmp = p_vars["standard"]["sfd_monitor_dss_jobs"]
+
+            dss_jobs_df = dss_jobs_df.query(f'timestamp>{tm_stmp}')
+
+            qry = f"INSERT INTO dataiku.dss_jobs (\"account\","
             for c in dss_jobs_df.columns:
                 qry += f"\"{c}\","
             
@@ -205,8 +211,11 @@ def insert_records(vals, vals_str, errors):
                 qry += '),'
             
             qry = qry[0:-1]
-            print(qry)
+
+            executor = SQLExecutor2(connection=SFD_CONN_NAME)
+            executor.query_to_df(qry, post_queries=['COMMIT'])
             
+            p_vars['standard']['sfd_monitor_dss_jobs'] = str(dss_jobs_df['timestamp'].max()) 
         except Exception as e:
             errors.append({
                 'type': 'dss_jobs',
@@ -249,7 +258,7 @@ def insert_records(vals, vals_str, errors):
                 'date': datetime.now()
             })
 
-insert_records(vals, vals_str, errors)
+insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df)
 
 # set any variable changes
 client.get_default_project().set_variables(p_vars)
