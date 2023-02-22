@@ -87,7 +87,7 @@ def collect_server_stats(vals, errors):
     except Exception as e:
         errors.append({
             'type': 'system',
-            'exception': traceback.print_exc()
+            'exception': traceback.format_exc()
         })
 
 def collect_metrics(vals, vals_str, errors):
@@ -106,7 +106,7 @@ def collect_metrics(vals, vals_str, errors):
         except Exception as e:
             errors.append({
                 'type': 'metric',
-                'exception': f'{metric_to_check}: {traceback.print_exc()}',
+                'exception': f'{metric_to_check}: {traceback.format_exc()}',
                 'date': datetime.now()
             })
 
@@ -125,7 +125,7 @@ def collect_metrics(vals, vals_str, errors):
         except Exception as e:
             errors.append({
                 'type': 'metric_string',
-                'exception': f'{metric_to_check}: {traceback.print_exc()}',
+                'exception': f'{metric_to_check}: {traceback.format_exc()}',
                 'date': datetime.now()
             })
 
@@ -150,7 +150,7 @@ def collect_user_project_data(vals, errors):
     except Exception as e:
             errors.append({
                 'type': 'user_project',
-                'exception': traceback.print_exc(),
+                'exception': traceback.format_exc(),
                 'date': datetime.now()
             })
 
@@ -220,7 +220,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
         except Exception as e:
             errors.append({
                 'type': 'dss_jobs',
-                'exception': traceback.print_exc(),
+                'exception': traceback.format_exc(),
                 'date': datetime.now()
             })   
 
@@ -255,7 +255,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
         except Exception as e:
             errors.append({
                 'type': 'dss_commits',
-                'exception': traceback.print_exc(),
+                'exception': traceback.format_exc(),
                 'date': datetime.now()
             })
 
