@@ -193,7 +193,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             if 'sfd_monitor_dss_jobs' in p_vars['standard']:
                 tm_stmp = p_vars["standard"]["sfd_monitor_dss_jobs"]
 
-            dss_jobs_df = dss_jobs_df.query(f'timestamp>{tm_stmp}')
+            dss_jobs_df = dss_jobs_df.query(f'time_start>{tm_stmp}')
 
             qry = f"INSERT INTO dataiku.dss_jobs (\"account\","
             for c in dss_jobs_df.columns:
@@ -216,7 +216,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             executor = SQLExecutor2(connection=SFD_CONN_NAME)
             executor.query_to_df(qry, post_queries=['COMMIT'])
             
-            p_vars['standard']['sfd_monitor_dss_jobs'] = str(dss_jobs_df['timestamp'].max()) 
+            p_vars['standard']['sfd_monitor_dss_jobs'] = str(dss_jobs_df['time_start'].max()) 
         except Exception as e:
             errors.append({
                 'type': 'dss_jobs',
