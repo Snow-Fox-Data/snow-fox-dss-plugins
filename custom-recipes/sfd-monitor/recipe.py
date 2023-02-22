@@ -190,11 +190,11 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
     if dss_jobs_df is not None:
         qry = ''
         try:
-            tm_stmp = str(int((datetime.now() - timedelta(days=30)).strftime('%s')) * 1000)
+            tm_stmp = datetime.now() - timedelta(days=30)
             if 'sfd_monitor_dss_jobs' in p_vars['standard']:
                 tm_stmp = p_vars["standard"]["sfd_monitor_dss_jobs"]
 
-            dss_jobs_df = dss_jobs_df.query(f'time_start>{tm_stmp}')
+            dss_jobs_df = dss_jobs_df.query(f'time_start>"{tm_stmp}"')
 
             qry = f"INSERT INTO dataiku.dss_jobs (\"account\","
             
