@@ -188,6 +188,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
 
     # jobs
     if dss_jobs_df is not None:
+        qry = ''
         try:
             tm_stmp = str(int((datetime.now() - timedelta(days=30)).strftime('%s')) * 1000)
             if 'sfd_monitor_dss_jobs' in p_vars['standard']:
@@ -196,8 +197,16 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             dss_jobs_df = dss_jobs_df.query(f'time_start>{tm_stmp}')
 
             qry = f"INSERT INTO dataiku.dss_jobs (\"account\","
+            
+            col_ct = 0
             for c in dss_jobs_df.columns:
-                qry += f"\"{c}\","
+                tp = dss_jobs_df.dtypes[col_ct]
+
+                if tp == "dtype('O')":
+                    # put quotes around objects
+                    qry += f"\"{c}\","
+                else:
+                    qry += f"{c},"
             
             qry = qry[0:-1]
             qry += ') VALUES '
@@ -220,7 +229,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
         except Exception as e:
             errors.append({
                 'type': 'dss_jobs',
-                'exception': traceback.format_exc(),
+                'exception': f'{traceback.format_exc()} | {qry}',
                 'date': datetime.now()
             })   
 
