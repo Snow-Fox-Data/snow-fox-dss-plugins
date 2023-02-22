@@ -11,6 +11,7 @@ import time
 import json
 import os
 import psutil
+import traceback
 
 # Output
 output_dataset = get_output_names_for_role('output_dataset')
@@ -86,7 +87,7 @@ def collect_server_stats(vals, errors):
     except Exception as e:
         errors.append({
             'type': 'system',
-            'exception': str(e)
+            'exception': traceback.print_exc()
         })
 
 def collect_metrics(vals, vals_str, errors):
@@ -105,7 +106,7 @@ def collect_metrics(vals, vals_str, errors):
         except Exception as e:
             errors.append({
                 'type': 'metric',
-                'exception': f'{metric_to_check}: {str(e)}',
+                'exception': f'{metric_to_check}: {traceback.print_exc()}',
                 'date': datetime.now()
             })
 
@@ -124,7 +125,7 @@ def collect_metrics(vals, vals_str, errors):
         except Exception as e:
             errors.append({
                 'type': 'metric_string',
-                'exception': f'{metric_to_check}: {str(e)}',
+                'exception': f'{metric_to_check}: {traceback.print_exc()}',
                 'date': datetime.now()
             })
 
@@ -149,7 +150,7 @@ def collect_user_project_data(vals, errors):
     except Exception as e:
             errors.append({
                 'type': 'user_project',
-                'exception': str(e),
+                'exception': traceback.print_exc(),
                 'date': datetime.now()
             })
 
@@ -189,7 +190,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
     if dss_jobs_df is not None:
         try:
             tm_stmp = str(int((datetime.now() - timedelta(days=30)).strftime('%s')) * 1000)
-            if 'sfd_monitor_dss_commit' in p_vars['standard']:
+            if 'sfd_monitor_dss_jobs' in p_vars['standard']:
                 tm_stmp = p_vars["standard"]["sfd_monitor_dss_jobs"]
 
             dss_jobs_df = dss_jobs_df.query(f'timestamp>{tm_stmp}')
@@ -219,7 +220,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
         except Exception as e:
             errors.append({
                 'type': 'dss_jobs',
-                'exception': str(e),
+                'exception': traceback.print_exc(),
                 'date': datetime.now()
             })   
 
@@ -254,7 +255,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
         except Exception as e:
             errors.append({
                 'type': 'dss_commits',
-                'exception': str(e),
+                'exception': traceback.print_exc(),
                 'date': datetime.now()
             })
 
