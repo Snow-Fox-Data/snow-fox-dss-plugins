@@ -39,23 +39,25 @@
     ],
     "outputRoles": [
         {
-            "name": "output_dataset",
+            "name": "error_output",
             "label": "Error Log",
             "arity": "UNARY",
             "mustBeSQL": false,
-            "required": true,
+            "required": false,
+            "acceptsDataset": true
+        },
+        {
+            "name": "metric_output",
+            "label": "Metric Output",
+            "arity": "UNARY",
+            "mustBeSQL": false,
+            "required": false,
             "acceptsDataset": true
         }
     ],
     "selectableFromDataset": "source_dataset",
     "params": [
-        {
-            "name": "envt",
-            "label": "Environment / Server Name",
-            "type": "STRING",
-            "mandatory": true,
-            "description": "Unique name of the environment or server name"
-        }
+        
     ],
     "resourceKeys": []
 }

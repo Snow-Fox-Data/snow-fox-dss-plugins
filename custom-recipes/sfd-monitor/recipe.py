@@ -14,9 +14,16 @@ import psutil
 import traceback
 
 # Output
-output_dataset = get_output_names_for_role('output_dataset')
-output_datasets = [dataiku.Dataset(name) for name in output_dataset]
-output_ds = output_datasets[0]
+error_output_dataset = get_output_names_for_role('error_output')
+error_output_datasets = [dataiku.Dataset(name) for name in error_output_dataset]
+error_output_ds = error_output_datasets[0]
+
+metric_output_dataset = get_output_names_for_role('metric_output')
+metric_output_datasets = [dataiku.Dataset(name) for name in metric_output_dataset]
+if len(metric_output_datasets) > 0:
+    metric_output_ds = metric_output_datasets[0]
+else: 
+    metric_output_ds = None
 
 # input
 dss_commit = get_input_names_for_role('dss_commits')
@@ -41,7 +48,7 @@ if len(dss_scenario) > 0:
 cfg = get_recipe_config()
 client = dataiku.api_client()
 p_vars = client.get_default_project().get_variables()
-envt = cfg['envt']
+envt = p_vars['standard']['sfd_monitor_envt']
 
 # determining the Postgres connection
 SFD_CONN_NAME = "sfd-monitor"
@@ -180,17 +187,50 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
     try:
         qry = f"INSERT INTO dataiku.ts_data (\"account\", \"environment\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
+        writer = None
+        if metric_output_ds != None:
+
+            if not metric_output_ds.exists():
+                metric_output_ds.write_with_schema(pd.DataFrame(columns=["datetime", "key", "value_num", "value_str", "utc_offset"]), True)                
+
+            writer = metric_output_ds.get_writer()
+
         for key in vals:
             qry += f"('{ACCT_UN}', '{envt}', '{dt_string}', '{key}', {vals[key]}, NULL, {utc_offset}),"
+            if writer != None:
+                writer.write_row_dict({
+                    "datetime": dt_string,
+                    "key": key,
+                    "value_num": vals[key],
+                    "value_str": '',
+                    "utc_offset": utc_offset
+                })
 
         for key in vals_str:
             qry += f"('{ACCT_UN}', '{envt}','{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
+
+            if writer != None:
+                writer.write_row_dict({
+                    "datetime": dt_string,
+                    "key": key,
+                    "value_num": '',
+                    "value_str": vals_str[key],
+                    "utc_offset": utc_offset
+                })
 
         qry = qry[0:-1]
 
         executor = SQLExecutor2(connection=SFD_CONN_NAME)
         executor.query_to_df(qry, post_queries=['COMMIT'])
+
+        if writer != None:
+            writer.close()
+
     except Exception as e:
+
+        if writer != None:
+            writer.close()
+
         errors.append({
             'type': 'sql_val_gen',
             'exception': str(e),
@@ -328,4 +368,5 @@ insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios
 client.get_default_project().set_variables(p_vars)
 
 # Write recipe outputs
-output_ds.write_with_schema(pd.DataFrame.from_dict(errors))
+metric_output_ds
+error_output_ds.write_with_schema(pd.DataFrame.from_dict(errors))
