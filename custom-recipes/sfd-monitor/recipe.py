@@ -273,7 +273,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
                 qry += f"('{ACCT_UN}','{envt}',"
 
                 for c in dss_scenarios_df.columns:
-                    qry += f"'{row[c]}',"
+                    qry += f"'{row[c].replace('NaT', '')}',"
 
                 qry = qry[0:-1]
                 qry += '),'
