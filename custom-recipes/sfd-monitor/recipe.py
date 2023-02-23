@@ -235,7 +235,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
 
         errors.append({
             'type': 'sql_val_gen',
-            'exception': str(e),
+            'exception': traceback.format_exc(),
             'date': datetime.now()
         })
 
@@ -253,13 +253,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             
             col_ct = 0
             for c in dss_jobs_df.columns:
-                tp = dss_jobs_df.dtypes[col_ct]
-
-                if tp == "dtype('O')":
-                    # put quotes around objects
-                    qry += f"\"{c}\","
-                else:
-                    qry += f"{c},"
+                qry += f"{c},"
             
             qry = qry[0:-1]
             qry += ') VALUES '
