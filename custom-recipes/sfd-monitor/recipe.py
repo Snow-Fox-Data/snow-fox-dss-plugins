@@ -31,6 +31,12 @@ if len(dss_job) > 0:
     dss_jobs = [dataiku.Dataset(name) for name in dss_job]
     dss_jobs_df = dss_jobs[0].get_dataframe()
 
+dss_scenario = get_input_names_for_role('dss_scenarios')
+dss_scenarios_df = None
+if len(dss_scenario) > 0:
+    dss_scenarios = [dataiku.Dataset(name) for name in dss_scenario]
+    dss_scenarios_df = dss_scenarios[0].get_dataframe()
+
 # Config
 cfg = get_recipe_config()
 client = dataiku.api_client()
@@ -229,6 +235,53 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
         except Exception as e:
             errors.append({
                 'type': 'dss_jobs',
+                'exception': f'{traceback.format_exc()} | {qry}',
+                'date': datetime.now()
+            })   
+
+    # scenarios
+    if dss_scenarios_df is not None:
+        qry = ''
+        try:
+            tm_stmp = datetime.now() - timedelta(days=30)
+            if 'sfd_monitor_dss_scenarios' in p_vars['standard']:
+                tm_stmp = p_vars["standard"]["sfd_monitor_dss_scenarios"]
+
+            dss_jobs_df = dss_scenarios_df.query(f'time_start>"{tm_stmp}"')
+
+            qry = f"INSERT INTO dataiku.dss_scenario_runs (\"account\","
+            
+            col_ct = 0
+            for c in dss_scenarios_df.columns:
+                tp = dss_scenarios_df.dtypes[col_ct]
+
+                if tp == "dtype('O')":
+                    # put quotes around objects
+                    qry += f"\"{c}\","
+                else:
+                    qry += f"{c},"
+            
+            qry = qry[0:-1]
+            qry += ') VALUES '
+
+            for idx, row in dss_scenarios_df.iterrows():
+                qry += f"('{ACCT_UN}',"
+
+                for c in dss_scenarios_df.columns:
+                    qry += f"'{row[c]}',"
+
+                qry = qry[0:-1]
+                qry += '),'
+            
+            qry = qry[0:-1]
+
+            executor = SQLExecutor2(connection=SFD_CONN_NAME)
+            executor.query_to_df(qry, post_queries=['COMMIT'])
+            
+            p_vars['standard']['sfd_monitor_dss_scenarios'] = str(dss_jobs_df['time_start'].max()) 
+        except Exception as e:
+            errors.append({
+                'type': 'dss_scenario_runs',
                 'exception': f'{traceback.format_exc()} | {qry}',
                 'date': datetime.now()
             })   

@@ -27,6 +27,14 @@
             "required": false,
             "acceptsDataset": true,
             "acceptsSavedModel": false
+        },{
+            "name": "dss_scenarios",
+            "label": "DSS Scenario Runs",
+            "description": "DSS Scenario Runs Internal Dataset",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsSavedModel": false
         }
     ],
     "outputRoles": [
