@@ -41,6 +41,7 @@ if len(dss_scenario) > 0:
 cfg = get_recipe_config()
 client = dataiku.api_client()
 p_vars = client.get_default_project().get_variables()
+envt = cfg['envt']
 
 # determining the Postgres connection
 SFD_CONN_NAME = "sfd-monitor"
@@ -167,19 +168,23 @@ collect_user_project_data(vals, errors)
 print(f'sending: {vals}')
 print(f'sending: {vals_str}')
 
+
+
 def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
     ts = time.time()
     utc_offset = int((datetime.fromtimestamp(ts) -
                     datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
     dt_string = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    # ts_data
     try:
-        qry = f"INSERT INTO dataiku.ts_data (\"account\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
+        qry = f"INSERT INTO dataiku.ts_data (\"account\", \"environment\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
         for key in vals:
-            qry += f"('{ACCT_UN}', '{dt_string}', '{key}', {vals[key]}, NULL, {utc_offset}),"
+            qry += f"('{ACCT_UN}', '{envt}', '{dt_string}', '{key}', {vals[key]}, NULL, {utc_offset}),"
 
         for key in vals_str:
-            qry += f"('{ACCT_UN}', '{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
+            qry += f"('{ACCT_UN}', '{envt}','{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
 
         qry = qry[0:-1]
 
@@ -202,7 +207,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
 
             dss_jobs_df = dss_jobs_df.query(f'time_start>"{tm_stmp}"')
 
-            qry = f"INSERT INTO dataiku.dss_jobs (\"account\","
+            qry = f"INSERT INTO dataiku.dss_jobs (\"account\",\"environment\","
             
             col_ct = 0
             for c in dss_jobs_df.columns:
@@ -218,7 +223,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             qry += ') VALUES '
 
             for idx, row in dss_jobs_df.iterrows():
-                qry += f"('{ACCT_UN}',"
+                qry += f"('{ACCT_UN}','{envt}',"
 
                 for c in dss_jobs_df.columns:
                     qry += f"'{row[c]}',"
@@ -249,7 +254,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
 
             dss_jobs_df = dss_scenarios_df.query(f'time_start>"{tm_stmp}"')
 
-            qry = f"INSERT INTO dataiku.dss_scenario_runs (\"account\","
+            qry = f"INSERT INTO dataiku.dss_scenario_runs (\"account\",\"environment\","
             
             col_ct = 0
             for c in dss_scenarios_df.columns:
@@ -265,7 +270,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             qry += ') VALUES '
 
             for idx, row in dss_scenarios_df.iterrows():
-                qry += f"('{ACCT_UN}',"
+                qry += f"('{ACCT_UN}','{envt}',"
 
                 for c in dss_scenarios_df.columns:
                     qry += f"'{row[c]}',"
@@ -298,7 +303,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             print(f'sending {len(dss_commit_df)} commits')
 
             if len(dss_commit_df) > 0:
-                qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
+                qry = f"INSERT INTO dataiku.dss_commits (\"account\", \"environment\", \"project_key\", \"commit_id\", \"author\", \"timestamp\") VALUES "
 
                 for idx, row in dss_commit_df.iterrows():
                     proj = row['project_key']
@@ -306,7 +311,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
                     author = row['author']
                     timestamp = row['timestamp']
 
-                    qry += f"('{ACCT_UN}', '{proj}', '{commit}', '{author}', {timestamp}),"
+                    qry += f"('{ACCT_UN}', '{envt}', '{proj}', '{commit}', '{author}', {timestamp}),"
 
                 qry = qry[0:-1]
 
