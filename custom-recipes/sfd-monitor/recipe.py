@@ -170,7 +170,7 @@ print(f'sending: {vals_str}')
 
 
 
-def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
+def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df):
     ts = time.time()
     utc_offset = int((datetime.fromtimestamp(ts) -
                     datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
@@ -326,7 +326,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
                 'date': datetime.now()
             })
 
-insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df)
+insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df)
 
 # set any variable changes
 client.get_default_project().set_variables(p_vars)
