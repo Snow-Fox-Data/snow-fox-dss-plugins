@@ -254,33 +254,32 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
 
             dss_scenarios_df = dss_scenarios_df.query(f'time_start>"{tm_stmp}"')
 
-            qry = f"INSERT INTO dataiku.dss_scenario_runs (\"account\",\"environment\","
-            
-            col_ct = 0
-            for c in dss_scenarios_df.columns:
-                qry += f"{c},"
-            
-            qry = qry[0:-1]
-            qry += ') VALUES '
-
-            for idx, row in dss_scenarios_df.iterrows():
-                qry += f"('{ACCT_UN}','{envt}',"
-
+            if len(dss_scenarios_df) > 0:
+                qry = f"INSERT INTO dataiku.dss_scenario_runs (\"account\",\"environment\","
+                
+                col_ct = 0
                 for c in dss_scenarios_df.columns:
-                    sc_val = str(row[c]).replace('NaT', '').replace('nan', '')
-                    qry += f"'{sc_val}',"
-
+                    qry += f"{c},"
+                
                 qry = qry[0:-1]
-                qry += '),'
-            
-            qry = qry[0:-1]
+                qry += ') VALUES '
 
-            print(qry)
+                for idx, row in dss_scenarios_df.iterrows():
+                    qry += f"('{ACCT_UN}','{envt}',"
 
-            executor = SQLExecutor2(connection=SFD_CONN_NAME)
-            executor.query_to_df(qry, post_queries=['COMMIT'])
-            
-            p_vars['standard']['sfd_monitor_dss_scenarios'] = str(dss_jobs_df['time_start'].max()) 
+                    for c in dss_scenarios_df.columns:
+                        sc_val = str(row[c]).replace('NaT', '').replace('nan', '')
+                        qry += f"'{sc_val}',"
+
+                    qry = qry[0:-1]
+                    qry += '),'
+                
+                qry = qry[0:-1]
+
+                executor = SQLExecutor2(connection=SFD_CONN_NAME)
+                executor.query_to_df(qry, post_queries=['COMMIT'])
+                
+                p_vars['standard']['sfd_monitor_dss_scenarios'] = str(dss_jobs_df['time_start'].max()) 
         except Exception as e:
             errors.append({
                 'type': 'dss_scenario_runs',
