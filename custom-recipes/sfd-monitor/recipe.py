@@ -252,7 +252,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df):
             if 'sfd_monitor_dss_scenarios' in p_vars['standard']:
                 tm_stmp = p_vars["standard"]["sfd_monitor_dss_scenarios"]
 
-            dss_jobs_df = dss_scenarios_df.query(f'time_start>"{tm_stmp}"')
+            dss_scenarios_df = dss_scenarios_df.query(f'time_start>"{tm_stmp}"')
 
             qry = f"INSERT INTO dataiku.dss_scenario_runs (\"account\",\"environment\","
             
