@@ -224,7 +224,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
 
         if metric_output_ds != None:
             metric_ds = proj.get_dataset(metric_output_ds.name.split('.')[1])
-            if not metric_ds.exists():
+            if not metric_ds.exists() or len(metric_ds.get_schema()['columns']) == 0:
                 capture_message('re-creating output metric dataset')
                 metric_output_ds.write_with_schema(pd.DataFrame(columns=["datetime", "key", "value_num", "value_str", "utc_offset"]), True)                
 
