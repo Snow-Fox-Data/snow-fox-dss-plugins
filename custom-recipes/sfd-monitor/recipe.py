@@ -284,6 +284,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 qry = qry[0:-1]
                 qry += '),'
             
+            qry = qry.replace('\'NaT\'', 'NULL').replace('\'nan\'', 'NULL')                        
             qry = qry[0:-1]
 
             executor = SQLExecutor2(connection=SFD_CONN_NAME)
@@ -322,8 +323,10 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                     qry += f"('{ACCT_UN}','{envt}',"
 
                     for c in dss_scenarios_df.columns:
-                        sc_val = str(row[c]).replace('NaT', 'NULL').replace('nan', 'NULL')
+                        sc_val = str(row[c])
                         qry += f"'{sc_val}',"
+                        
+                    qry = qry.replace('\'NaT\'', 'NULL').replace('\'nan\'', 'NULL')                        
 
                     qry = qry[0:-1]
                     qry += '),'
