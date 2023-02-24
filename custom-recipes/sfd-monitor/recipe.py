@@ -102,7 +102,7 @@ def collect_server_stats(vals, errors):
         disks = psutil.disk_partitions(all=False)
 
         for disk in disks:
-            usage = psutil.disk_usage(disks[0].mountpoint)
+            usage = psutil.disk_usage(disk.mountpoint)
 
             d_name = disk.mountpoint.replace('/', '_')
             if d_name == '_':
