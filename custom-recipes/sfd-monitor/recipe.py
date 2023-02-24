@@ -206,7 +206,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
         qry = f"INSERT INTO dataiku.ts_data (\"account\", \"environment\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
         if metric_output_ds != None:
-            metric_ds = proj.get_dataset(metric_output_ds.name.split(['.'])[1])
+            metric_ds = proj.get_dataset(metric_output_ds.name.split('.')[1])
             if not metric_ds.exists():
                 capture_message('re-creating output metric dataset')
                 metric_output_ds.write_with_schema(pd.DataFrame(columns=["datetime", "key", "value_num", "value_str", "utc_offset"]), True)                
