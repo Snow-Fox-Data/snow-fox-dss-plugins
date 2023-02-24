@@ -5,7 +5,7 @@
         // label: name of the recipe as displayed, should be short
         "label": "Snow Fox Data Monitoring",
         // description: longer string to help end users understand what this recipe does
-        "description": "Integrates with the Snow Fox Data monitoring service. Subscription required.",
+        "description": "Integrates with the Snow Fox Data monitoring service. Subscription required. Requires project varaibles sfd_monitor_conn and sfd_monitor_envt",
         // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
         "icon": "icon-cloud-upload"
     },
@@ -57,7 +57,23 @@
     ],
     "selectableFromDataset": "source_dataset",
     "params": [
-        
+        {
+            "type": "SELECT",
+            "name": "send_errors",
+            "defaultValue": "yes",
+            "label": "Send errors to Snow Fox Data",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not send"
+                },
+                
+                {
+                    "value": "yes",
+                    "label": "Send to Snow Fox"
+                }
+            ]
+        }
     ],
     "resourceKeys": []
 }

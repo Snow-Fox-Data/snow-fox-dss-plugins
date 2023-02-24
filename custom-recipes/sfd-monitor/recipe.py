@@ -16,19 +16,12 @@ from sentry_sdk import capture_exception
 from sentry_sdk import capture_message
 import sentry_sdk
 
-sentry_sdk.init(
-    dsn="https://1b4135fb793649efa9548b0f588583b0@o1303348.ingest.sentry.io/4504734995775488",
-
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production.
-    traces_sample_rate=1.0
-)
 
 # Output
 error_output_dataset = get_output_names_for_role('error_output')
 error_output_datasets = [dataiku.Dataset(name) for name in error_output_dataset]
-error_output_ds = error_output_datasets[0]
+if len(error_output_datasets) > 0:
+    error_output_ds = error_output_datasets[0]
 
 metric_output_dataset = get_output_names_for_role('metric_output')
 metric_output_datasets = [dataiku.Dataset(name) for name in metric_output_dataset]
@@ -61,7 +54,19 @@ cfg = get_recipe_config()
 client = dataiku.api_client()
 proj = client.get_default_project()
 p_vars = proj.get_variables()
+
+send_errors = cfg['send_errors'] == 'yes'
 envt = p_vars['standard']['sfd_monitor_envt']
+
+if send_errors:
+    sentry_sdk.init(
+        dsn="https://1b4135fb793649efa9548b0f588583b0@o1303348.ingest.sentry.io/4504734995775488",
+
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production.
+        traces_sample_rate=1.0
+    )
 
 # determining the Postgres connection
 SFD_CONN_NAME = "sfd-monitor"
@@ -72,8 +77,13 @@ if "sfd_monitor_conn" in p_vars['standard']:
 ACCT_UN = client.list_connections()[SFD_CONN_NAME]['params']['user']
 
 # retrieving the list of metrics to collect
-METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_metrics']
-STRING_METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_string_metrics']
+METRICS_TO_CHECK = []
+if 'sfd_monitor_metrics' in p_vars['standard']:
+    METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_metrics']
+
+STRING_METRICS_TO_CHECK = []
+if 'sfd_monitor_string_metrics' in p_vars['standard']:
+    STRING_METRICS_TO_CHECK = p_vars['standard']['sfd_monitor_string_metrics']
 
 # grabbing the DSS Version
 dss_version = json.load(open(os.path.join(
@@ -112,11 +122,13 @@ def collect_server_stats(vals, errors):
             vals[f'disk{d_name}_used_pct'] = usage.percent
 
     except Exception as e:
-        capture_exception(e)
         errors.append({
             'type': 'system',
             'exception': traceback.format_exc()
-        })
+        }) 
+        if send_errors:
+            capture_exception(e)
+       
 
 def collect_metrics(vals, vals_str, errors):
     for metric_to_check in METRICS_TO_CHECK:
@@ -132,12 +144,14 @@ def collect_metrics(vals, vals_str, errors):
 
             vals[metric_to_check] = last_val
         except Exception as e:
-            capture_exception(e)
             errors.append({
                 'type': 'metric',
                 'exception': f'{metric_to_check}: {traceback.format_exc()}',
                 'date': datetime.now()
             })
+            if send_errors:
+                capture_exception(e)
+          
 
     for metric_to_check in STRING_METRICS_TO_CHECK:
         try:
@@ -152,13 +166,14 @@ def collect_metrics(vals, vals_str, errors):
 
             vals_str[metric_to_check] = str(last_val)
         except Exception as e:
-            capture_exception(e)
             errors.append({
                 'type': 'metric_string',
                 'exception': f'{metric_to_check}: {traceback.format_exc()}',
                 'date': datetime.now()
             })
-
+            if send_errors:
+                capture_exception(e)
+            
 def collect_user_project_data(vals, errors):
     try:
         dss_users = client.list_users()
@@ -178,12 +193,14 @@ def collect_user_project_data(vals, errors):
         vals['dss_project_count'] = len(client.list_project_keys())
 
     except Exception as e:
-            capture_exception(e)
             errors.append({
                 'type': 'user_project',
                 'exception': traceback.format_exc(),
                 'date': datetime.now()
             })
+            if send_errors:
+                capture_exception(e)
+            
 
 collect_server_stats(vals, errors)
 collect_metrics(vals, vals_str, errors)
@@ -254,8 +271,9 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             'exception': traceback.format_exc(),
             'date': datetime.now()
         })
-        capture_exception(e)
-
+        if send_errors:
+                capture_exception(e)
+            
     # jobs
     if dss_jobs_df is not None:
         qry = ''
@@ -297,8 +315,9 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 'exception': f'{traceback.format_exc()} | {qry}',
                 'date': datetime.now()
             })   
-            capture_exception(e)
-
+            if send_errors:
+                capture_exception(e)
+            
     # scenarios
     if dss_scenarios_df is not None:
         qry = ''
@@ -343,8 +362,9 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 'exception': f'{traceback.format_exc()} | {qry}',
                 'date': datetime.now()
             })  
-            capture_exception(e) 
-
+            if send_errors:
+                capture_exception(e)
+            
     # commits
     if dss_commit_df is not None:
         try:
@@ -379,8 +399,9 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 'exception': traceback.format_exc(),
                 'date': datetime.now()
             })
-            capture_exception(e) 
-
+            if send_errors:
+                capture_exception(e)
+            
 insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, proj)
 
 # set any variable changes
