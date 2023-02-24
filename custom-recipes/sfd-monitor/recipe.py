@@ -47,7 +47,8 @@ if len(dss_scenario) > 0:
 # Config
 cfg = get_recipe_config()
 client = dataiku.api_client()
-p_vars = client.get_default_project().get_variables()
+proj = client.get_default_project()
+p_vars = proj.get_variables()
 envt = p_vars['standard']['sfd_monitor_envt']
 
 # determining the Postgres connection
@@ -177,7 +178,7 @@ print(f'sending: {vals_str}')
 
 
 
-def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df):
+def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, proj):
     ts = time.time()
     utc_offset = int((datetime.fromtimestamp(ts) -
                     datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
@@ -356,7 +357,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 'date': datetime.now()
             })
 
-insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df)
+insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, proj)
 
 # set any variable changes
 client.get_default_project().set_variables(p_vars)
