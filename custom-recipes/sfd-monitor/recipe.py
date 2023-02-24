@@ -215,7 +215,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
     ts = time.time()
     utc_offset = int((datetime.fromtimestamp(ts) -
                     datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
-    dt_string = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    dt_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # ts_data
     writer = None
