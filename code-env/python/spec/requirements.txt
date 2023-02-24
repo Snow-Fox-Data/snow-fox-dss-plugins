@@ -1,2 +1,3 @@
 # snowflake-connector-python==3.0.0
 psutil
+sentry-sdk

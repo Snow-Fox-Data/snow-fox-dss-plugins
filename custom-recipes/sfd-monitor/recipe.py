@@ -12,6 +12,17 @@ import json
 import os
 import psutil
 import traceback
+from sentry_sdk import capture_exception
+from sentry_sdk import capture_message
+
+sentry_sdk.init(
+    dsn="https://1b4135fb793649efa9548b0f588583b0@o1303348.ingest.sentry.io/4504734995775488",
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0
+)
 
 # Output
 error_output_dataset = get_output_names_for_role('error_output')
@@ -100,6 +111,7 @@ def collect_server_stats(vals, errors):
             vals[f'disk{d_name}_used_pct'] = usage.percent
 
     except Exception as e:
+        capture_exception(e)
         errors.append({
             'type': 'system',
             'exception': traceback.format_exc()
@@ -119,6 +131,7 @@ def collect_metrics(vals, vals_str, errors):
 
             vals[metric_to_check] = last_val
         except Exception as e:
+            capture_exception(e)
             errors.append({
                 'type': 'metric',
                 'exception': f'{metric_to_check}: {traceback.format_exc()}',
@@ -138,6 +151,7 @@ def collect_metrics(vals, vals_str, errors):
 
             vals_str[metric_to_check] = str(last_val)
         except Exception as e:
+            capture_exception(e)
             errors.append({
                 'type': 'metric_string',
                 'exception': f'{metric_to_check}: {traceback.format_exc()}',
@@ -163,6 +177,7 @@ def collect_user_project_data(vals, errors):
         vals['dss_project_count'] = len(client.list_project_keys())
 
     except Exception as e:
+            capture_exception(e)
             errors.append({
                 'type': 'user_project',
                 'exception': traceback.format_exc(),
@@ -232,6 +247,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
         if writer != None:
             writer.close()
 
+        capture_exception(e)
         errors.append({
             'type': 'sql_val_gen',
             'exception': traceback.format_exc(),
@@ -273,6 +289,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             
             p_vars['standard']['sfd_monitor_dss_jobs'] = str(dss_jobs_df['time_start'].max()) 
         except Exception as e:
+            capture_exception(e)
             errors.append({
                 'type': 'dss_jobs',
                 'exception': f'{traceback.format_exc()} | {qry}',
@@ -316,6 +333,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 
                 p_vars['standard']['sfd_monitor_dss_scenarios'] = str(dss_jobs_df['time_start'].max()) 
         except Exception as e:
+            capture_exception(e)
             errors.append({
                 'type': 'dss_scenario_runs',
                 'exception': f'{traceback.format_exc()} | {qry}',
