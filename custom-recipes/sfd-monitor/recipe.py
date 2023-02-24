@@ -14,6 +14,7 @@ import psutil
 import traceback
 from sentry_sdk import capture_exception
 from sentry_sdk import capture_message
+import sentry_sdk
 
 sentry_sdk.init(
     dsn="https://1b4135fb793649efa9548b0f588583b0@o1303348.ingest.sentry.io/4504734995775488",
