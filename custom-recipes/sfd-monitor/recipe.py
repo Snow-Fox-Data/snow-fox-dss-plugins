@@ -201,13 +201,14 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
     dt_string = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     # ts_data
+    writer = None
     try:
         qry = f"INSERT INTO dataiku.ts_data (\"account\", \"environment\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
-        writer = None
         if metric_output_ds != None:
             metric_ds = proj.get_dataset(metric_output_ds.name)
             if not metric_ds.exists():
+                capture_message('re-creating output metric dataset')
                 metric_output_ds.write_with_schema(pd.DataFrame(columns=["datetime", "key", "value_num", "value_str", "utc_offset"]), True)                
 
             writer = metric_output_ds.get_writer()
@@ -248,12 +249,12 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
         if writer != None:
             writer.close()
 
-        capture_exception(e)
         errors.append({
             'type': 'sql_val_gen',
             'exception': traceback.format_exc(),
             'date': datetime.now()
         })
+        capture_exception(e)
 
     # jobs
     if dss_jobs_df is not None:
@@ -290,12 +291,12 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             
             p_vars['standard']['sfd_monitor_dss_jobs'] = str(dss_jobs_df['time_start'].max()) 
         except Exception as e:
-            capture_exception(e)
             errors.append({
                 'type': 'dss_jobs',
                 'exception': f'{traceback.format_exc()} | {qry}',
                 'date': datetime.now()
             })   
+            capture_exception(e)
 
     # scenarios
     if dss_scenarios_df is not None:
@@ -334,12 +335,12 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 
                 p_vars['standard']['sfd_monitor_dss_scenarios'] = str(dss_jobs_df['time_start'].max()) 
         except Exception as e:
-            capture_exception(e)
             errors.append({
                 'type': 'dss_scenario_runs',
                 'exception': f'{traceback.format_exc()} | {qry}',
                 'date': datetime.now()
-            })   
+            })  
+            capture_exception(e) 
 
     # commits
     if dss_commit_df is not None:
@@ -375,6 +376,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 'exception': traceback.format_exc(),
                 'date': datetime.now()
             })
+            capture_exception(e) 
 
 insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, proj)
 
