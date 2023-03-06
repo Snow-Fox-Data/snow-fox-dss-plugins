@@ -35,6 +35,14 @@
             "required": false,
             "acceptsDataset": true,
             "acceptsSavedModel": false
+        },{
+            "name": "snowflake_warehouse_metering",
+            "label": "Snowflake Warehouse Metering History",
+            "description": "Optional Snowflake Warehouse Metering dataset",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsSavedModel": false
         }
     ],
     "outputRoles": [
@@ -55,7 +63,6 @@
             "acceptsDataset": true
         }
     ],
-    "selectableFromDataset": "source_dataset",
     "params": [
         {
             "type": "SELECT",

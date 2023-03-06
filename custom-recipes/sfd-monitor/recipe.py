@@ -56,6 +56,13 @@ if len(dss_scenario) > 0:
     dss_scenarios = [dataiku.Dataset(name) for name in dss_scenario]
     dss_scenarios_df = dss_scenarios[0].get_dataframe()
 
+snowflake_warehouse_metering = get_input_names_for_role('snowflake_warehouse_metering')
+snowflake_warehouse_metering_df = None
+if len(snowflake_warehouse_metering) > 0:
+    snowflake_warehouse_meterings = [dataiku.Dataset(name) for name in snowflake_warehouse_metering]
+    snowflake_warehouse_metering_df = snowflake_warehouse_meterings[0].get_dataframe()
+
+
 # Config
 cfg = get_recipe_config()
 client = dataiku.api_client()
@@ -209,7 +216,7 @@ print(f'sending: {vals_str}')
 
 
 
-def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, proj):
+def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, snowflake_warehouse_metering_df, proj):
     ts = time.time()
     utc_offset = int((datetime.fromtimestamp(ts) -
                     datetime.utcfromtimestamp(ts)).total_seconds() / 60 / 60)
@@ -218,7 +225,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
     # ts_data
     writer = None
     try:
-        qry = f"INSERT INTO dataiku.ts_data (\"account\", \"environment\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
+        qry = f"INSERT INTO dataiku.ts_data (\"account\", \"environment\", \"metric_type\", \"datetime\", \"key\", \"value_num\", \"value_str\", \"utc_offset\") VALUES "
 
         if metric_output_ds != None:
             metric_ds = proj.get_dataset(metric_output_ds.name.split('.')[1])
@@ -229,7 +236,11 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             writer = metric_output_ds.get_writer()
 
         for key in vals:
-            qry += f"('{ACCT_UN}', '{envt}', '{dt_string}', '{key}', {vals[key]}, NULL, {utc_offset}),"
+            metric_type = 'SERVER'
+            if ":" in key:
+                metric_type = 'METRIC'
+
+            qry += f"('{ACCT_UN}', '{envt}', '{metric_type}', '{dt_string}', '{key}', {vals[key]}, NULL, {utc_offset}),"
             if writer != None:
                 writer.write_row_dict({
                     "datetime": dt_string,
@@ -240,7 +251,8 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 })
 
         for key in vals_str:
-            qry += f"('{ACCT_UN}', '{envt}','{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
+            metric_type = 'SERVER'
+            qry += f"('{ACCT_UN}', '{envt}', '{metric_type}', '{dt_string}', '{key}', NULL, '{vals_str[key]}', {utc_offset}),"
 
             if writer != None:
                 writer.write_row_dict({
@@ -399,7 +411,50 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             })
             capture_exception(e) 
 
-insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, proj)
+    # snowflake account
+    if snowflake_warehouse_metering_df is not None:
+        qry = ''
+        try:
+            tm_stmp = datetime.now() - timedelta(days=30)
+            if 'sfd_snowflake_warehouse_metering' in p_vars['standard']:
+                tm_stmp = p_vars["standard"]["sfd_snowflake_warehouse_metering"]
+                tm_stmp = datetime.strptime(tm_stmp[0:19], "%Y-%m-%d %H:%M:%S")
+
+            # only sending snowflake every hour
+            if (datetime.now() - tm_stmp).seconds >= 3600:                
+                # only non-null rows
+                snowflake_warehouse_metering_df = snowflake_warehouse_metering_df.query(f'START_TIME>"{tm_stmp}+00:00" & END_TIME == END_TIME')
+
+                if len(snowflake_warehouse_metering_df) > 0:
+                    qry = f"INSERT INTO dataiku.snowflake_wh_usage (\"account\",\"start_time\",\"end_time\",\"warehouse_name\",\"credits_used\") VALUES "
+
+                    for idx, row in snowflake_warehouse_metering_df.iterrows():
+                        st = row['START_TIME']
+                        et = row['END_TIME']
+                        wh = row['WAREHOUSE_NAME']
+                        credits = row['CREDITS_USED']
+
+                        qry += f"('{ACCT_UN}','{st}','{et}','{wh}',{credits})," 
+
+                    qry = qry[0:-1]
+
+                    print(qry)
+
+                    executor = SQLExecutor2(connection=SFD_CONN_NAME)
+                    executor.query_to_df(qry, post_queries=['COMMIT'])
+
+                    p_vars['standard']['sfd_snowflake_warehouse_metering'] = str(snowflake_warehouse_metering_df['START_TIME'].max())
+
+            
+        except Exception as e:
+            errors.append({
+                'type': 'snowflake_warehouse_usage',
+                'exception': f'{traceback.format_exc()} | {qry}',
+                'date': datetime.now()
+            })  
+            capture_exception(e) 
+
+insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios_df, snowflake_warehouse_metering_df, proj)
 
 # set any variable changes
 client.get_default_project().set_variables(p_vars)
