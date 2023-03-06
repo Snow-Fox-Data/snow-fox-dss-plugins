@@ -60,8 +60,7 @@ snowflake_warehouse_metering = get_input_names_for_role('snowflake_warehouse_met
 snowflake_warehouse_metering_df = None
 if len(snowflake_warehouse_metering) > 0:
     snowflake_warehouse_meterings = [dataiku.Dataset(name) for name in snowflake_warehouse_metering]
-    snowflake_warehouse_metering_df = snowflake_warehouse_meterings[0].get_dataframe()
-
+    
 
 # Config
 cfg = get_recipe_config()
@@ -412,16 +411,26 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             capture_exception(e) 
 
     # snowflake account
-    if snowflake_warehouse_metering_df is not None:
+    if len(snowflake_warehouse_meterings) > 0:
         qry = ''
         try:
             tm_stmp = datetime.now() - timedelta(days=30)
             if 'sfd_snowflake_warehouse_metering' in p_vars['standard']:
                 tm_stmp = p_vars["standard"]["sfd_snowflake_warehouse_metering"]
-                tm_stmp = datetime.strptime(tm_stmp[0:19], "%Y-%m-%d %H:%M:%S")
-
+            
+            ok_sf = True
             # only sending snowflake every hour
-            if (datetime.now() - tm_stmp).seconds >= 3600:                
+            if 'sfd_snowflake_warehouse_last_sync' in p_vars['standard']:                
+                last_sync = datetime.strptime(p_vars['standard']['sfd_snowflake_warehouse_last_sync'][0:19], "%Y-%m-%d %H:%M:%S")
+                sec_since_send = (datetime.now() - last_sync).seconds 
+
+                ok_sf = sec_since_send >= 3600
+            
+            if ok_sf:            
+                snowflake_warehouse_metering_df = snowflake_warehouse_meterings[0].get_dataframe()
+                print(f'sending Snowflake data since it\'s been {sec_since_send}s')   
+                p_vars['standard']['sfd_snowflake_warehouse_last_sync'] = str(datetime.now())
+
                 # only non-null rows
                 snowflake_warehouse_metering_df = snowflake_warehouse_metering_df.query(f'START_TIME>"{tm_stmp}+00:00" & END_TIME == END_TIME')
 
@@ -438,7 +447,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
 
                     qry = qry[0:-1]
 
-                    print(qry)
+                    # print(qry)
 
                     executor = SQLExecutor2(connection=SFD_CONN_NAME)
                     executor.query_to_df(qry, post_queries=['COMMIT'])
