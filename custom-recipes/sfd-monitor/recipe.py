@@ -28,7 +28,9 @@ sentry_sdk.init(
 # Output
 error_output_dataset = get_output_names_for_role('error_output')
 error_output_datasets = [dataiku.Dataset(name) for name in error_output_dataset]
-error_output_ds = error_output_datasets[0]
+error_output_ds = None
+if len(error_output_datasets) > 0:
+    error_output_ds = error_output_datasets[0]
 
 metric_output_dataset = get_output_names_for_role('metric_output')
 metric_output_datasets = [dataiku.Dataset(name) for name in metric_output_dataset]
@@ -57,8 +59,10 @@ if len(dss_scenario) > 0:
     dss_scenarios_df = dss_scenarios[0].get_dataframe()
 
 snowflake_warehouse_metering = get_input_names_for_role('snowflake_warehouse_metering')
+sending_snowflake = len(snowflake_warehouse_metering) > 0
 snowflake_warehouse_metering_df = None
-if len(snowflake_warehouse_metering) > 0:
+snowflake_warehouse_meterings = []
+if sending_snowflake:
     snowflake_warehouse_meterings = [dataiku.Dataset(name) for name in snowflake_warehouse_metering]
     
 
@@ -180,7 +184,7 @@ def collect_metrics(vals, vals_str, errors):
                 'date': datetime.now()
             })
 
-def collect_user_project_data(vals, errors):
+def collect_user_project_data(vals, vals_str, errors):
     try:
         dss_users = client.list_users()
 
@@ -188,14 +192,17 @@ def collect_user_project_data(vals, errors):
         enabled_user_ct = 0
 
         # Grab list of users where they have active web socket sessions
+        login_list = []
         for user in dss_users:
             if user['activeWebSocketSesssions'] != 0:
+                login_list.append(user['login'])
                 connected_user_ct += 1
             if user['enabled']:
                 enabled_user_ct += 1
 
         vals['dss_user_connected_count'] = connected_user_ct
         vals['dss_user_enabled_count'] = enabled_user_ct
+        vals_str['dss_users_active'] = '|'.join(login_list)
         vals['dss_project_count'] = len(client.list_project_keys())
 
     except Exception as e:
@@ -208,7 +215,7 @@ def collect_user_project_data(vals, errors):
 
 collect_server_stats(vals, errors)
 collect_metrics(vals, vals_str, errors)
-collect_user_project_data(vals, errors)
+collect_user_project_data(vals, vals_str, errors)
 
 print(f'sending: {vals}')
 print(f'sending: {vals_str}')
@@ -228,7 +235,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
 
         if metric_output_ds != None:
             metric_ds = proj.get_dataset(metric_output_ds.name.split('.')[1])
-            if not metric_ds.exists():
+            if not metric_ds.exists() or len(metric_ds.get_schema()['columns']) == 0:
                 capture_message('re-creating output metric dataset')
                 metric_output_ds.write_with_schema(pd.DataFrame(columns=["datetime", "key", "value_num", "value_str", "utc_offset"]), True)                
 
@@ -263,6 +270,8 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
                 })
 
         qry = qry[0:-1]
+
+        print(qry)
 
         executor = SQLExecutor2(connection=SFD_CONN_NAME)
         executor.query_to_df(qry, post_queries=['COMMIT'])
@@ -411,7 +420,7 @@ def insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scena
             capture_exception(e) 
 
     # snowflake account
-    if len(snowflake_warehouse_meterings) > 0:
+    if sending_snowflake:
         qry = ''
         try:
             tm_stmp = datetime.now() - timedelta(days=30)
@@ -469,5 +478,5 @@ insert_records(vals, vals_str, errors, dss_jobs_df, dss_commit_df, dss_scenarios
 client.get_default_project().set_variables(p_vars)
 
 # Write recipe outputs
-metric_output_ds
-error_output_ds.write_with_schema(pd.DataFrame.from_dict(errors))
+if error_output_ds != None:
+    error_output_ds.write_with_schema(pd.DataFrame.from_dict(errors))

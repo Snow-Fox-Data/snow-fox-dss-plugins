@@ -157,7 +157,7 @@
                 },
                 {
                     "value": "underscore",
-                    "label": "Append an underscore"
+                    "label": "Prefix with an underscore"
                 },
                 {
                     "value": "delete",

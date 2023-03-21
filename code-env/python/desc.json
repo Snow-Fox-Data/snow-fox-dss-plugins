@@ -2,6 +2,6 @@
     "acceptedPythonInterpreters": ["PYTHON37","PYTHON38","PYTHON39"],
     "forceConda": false,
     "installCorePackages": true,
-    "corePackagesSet": "PANDAS12",
+    "corePackagesSet": "PANDAS11",
     "installJupyterSupport": false
   }
