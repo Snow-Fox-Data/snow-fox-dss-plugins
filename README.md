@@ -1,11 +1,16 @@
 # Snow Fox Data - Dataiku Plugins
-#### Plugins to extend the capabilities of the Dataiku platform
+## Plugins to extend the capabilities of the Dataiku platform
 
-Recipes:
+### Installation:
+1. Download the "main" branch of this repository as a .zip file
+2. Upload the .zip to your Dataiku instance(s) as described in this link https://doc.dataiku.com/dss/latest/plugins/installing.html#installing-from-a-zip-file
+
+### Included in this plugin
+#### Recipes:
 * Column Remapper
 * Automated Model Evaluation
 * Snowflake Upsert
 
-Scenario steps:
+#### Scenario steps:
 * Metric => Variable 
 * Long running job 
