@@ -1,0 +1,95 @@
+// This file is the descriptor for the Custom code recipe snowflake-incremental
+{
+    // Meta data for display purposes
+    "meta": {
+        // label: name of the recipe as displayed, should be short
+        "label": "Snowflake Upsert",
+        // description: longer string to help end users understand what this recipe does
+        "description": "Incrementially sync data from source to destination table",
+        // icon: must be one of the FontAwesome 5.15.4 icons, complete list here at https://fontawesome.com/v5/docs/
+      "icon": "icon-double-angle-right"
+    },
+
+    "kind": "PYTHON",
+
+    "inputRoles": [
+        {
+            "name": "source_dataset",
+           "label": "Source Dataset",
+            "description": "Dataset to be used as the source for the incremental update",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "mustBeSQL": true
+        }
+        // ...
+    ],
+    "selectableFromDataset": "source_dataset",
+
+    "outputRoles": [
+        {
+            "name": "destination_dataset",
+            "label": "Destination Table",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true
+        },
+         {
+            "name": "log_dataset",
+            "label": "Sync Log Table",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true
+        }
+    ],
+
+    /* The field "params" holds a list of all the params
+       for wich the user will be prompted for values in the Settings tab of the recipe.
+
+       The available parameter types include:
+       STRING, STRINGS, INT, DOUBLE, BOOLEAN, SELECT, MULTISELECT, MAP, TEXTAREA, PRESET, COLUMN, COLUMNS
+
+       For the full list and for more details, see the documentation: https://doc.dataiku.com/dss/latest/plugins/reference/params.html
+    */
+
+    "params": [
+        {
+            "type": "SELECT",
+            "name": "mode_selection",
+            "label": "Mode",
+            "defaultValue": "no",
+            "selectChoices": [
+                {
+                    "value": "key",
+                    "label": "Insert based on key column"
+                },
+                 {
+                    "value": "key_update",
+                    "label": "Insert and update based on key column"
+                },
+                {
+                    "value": "larger",
+                    "label": "Insert rows with keys larger than the max existing"
+                }
+            ]
+        },
+        {
+            "name": "key_name",
+            "label": "Key Column",
+            "type": "COLUMN",
+            "columnRole": "source_dataset",
+            "description": "Column to be used as the key for the incremental update"
+        }
+
+        // The 'COLUMNS' type works in the same way, except that it is a list of strings.
+    ],
+
+    // The field "resourceKeys" holds a list of keys that allows to limit the number
+    // of concurrent executions and activities triggered by this recipe.
+    //
+    // Administrators can configure the limit per resource key in the Administration > Settings > Flow build
+    // screen.
+
+    "resourceKeys": []
+
+}

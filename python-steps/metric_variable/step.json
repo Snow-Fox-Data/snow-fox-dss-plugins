@@ -1,0 +1,38 @@
+/* This file is the descriptor for the Custom python step long-running-job */
+{
+    "meta" : {
+        // label: name of the scenario step as displayed, should be short
+        "label": "Record a dataset metric",
+
+        // description: longer string to help end users understand what this scenario step does
+        "description": "Recalculates a specific dataset metric and saves the output as a project variable",
+
+        // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "icon-superscript"
+    },
+    
+    "params": [
+        {
+            "name": "source_dataset",
+           "label": "Source Dataset",
+            "type": "DATASET",
+            "description": "Dataset to be used as the source",
+            "mandatory": true        },
+        {
+            "name": "metric_name",
+            "label": "Name of the metric",
+            "type": "STRING",
+            "defaultValue": '',
+            "description": "",
+            "mandatory": true
+        },
+        {
+            "name": "variable_name",
+            "label": "Name of the project variable",
+            "type": "STRING",
+            "defaultValue": '',
+            "description": "",
+            "mandatory": true
+        }
+    ]
+}

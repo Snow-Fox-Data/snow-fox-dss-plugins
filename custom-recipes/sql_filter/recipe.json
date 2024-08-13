@@ -1,0 +1,87 @@
+// This file is the descriptor for the Custom code recipe snowflake-incremental
+{
+    // Meta data for display purposes
+    "meta": {
+        // label: name of the recipe as displayed, should be short
+        "label": "SQL Incremental Filter",
+        // description: longer string to help end users understand what this recipe does
+        "description": "Incrementially sync data from source to destination table",
+        // icon: must be one of the FontAwesome 5.15.4 icons, complete list here at https://fontawesome.com/v5/docs/
+      "icon": "icon-filter"
+    },
+
+    "kind": "PYTHON",
+
+    "inputRoles": [
+              {
+            "name": "source_dataset",
+           "label": "Source Dataset",
+            "description": "Dataset to be used as the source for the incremental update",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "mustBeSQL": true
+        }  ,
+        {
+            "name": "destination_dataset",
+            "label": "Final Destination Table to retrieve max value from",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true
+        }
+    ],
+    "selectableFromDataset": "source_dataset",
+
+    "outputRoles": [{
+            "name": "output_dataset",
+            "label": "Output Table for incremental filter",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true
+        },
+         {
+            "name": "log_dataset",
+            "label": "Sync Log Table",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true
+        }
+    ],
+
+    /* The field "params" holds a list of all the params
+       for wich the user will be prompted for values in the Settings tab of the recipe.
+
+       The available parameter types include:
+       STRING, STRINGS, INT, DOUBLE, BOOLEAN, SELECT, MULTISELECT, MAP, TEXTAREA, PRESET, COLUMN, COLUMNS
+
+       For the full list and for more details, see the documentation: https://doc.dataiku.com/dss/latest/plugins/reference/params.html
+    */
+
+    "params": [
+        {
+            "name": "source_key_name",
+            "label": "Source Key Column",
+            "type": "COLUMN",
+            "columnRole": "source_dataset",
+            "description": "Column to be used as the key from the source table."
+        },
+        {
+            "name": "key_name",
+            "label": "Destination Key Column",
+            "type": "COLUMN",
+            "columnRole": "destination_dataset",
+            "description": "Column to be used as the key from the destination table."
+        }
+
+        // The 'COLUMNS' type works in the same way, except that it is a list of strings.
+    ],
+
+    // The field "resourceKeys" holds a list of keys that allows to limit the number
+    // of concurrent executions and activities triggered by this recipe.
+    //
+    // Administrators can configure the limit per resource key in the Administration > Settings > Flow build
+    // screen.
+
+    "resourceKeys": []
+
+}

@@ -1,7 +1,11 @@
 # Snow Fox Data - Dataiku Plugins
 #### Plugins to extend the capabilities of the Dataiku platform
 
-Includes:
+Recipes:
 * Column Remapper
-* Long running job scenario step
 * Automated Model Evaluation
+* Snowflake Upsert
+
+Scenario steps:
+* Metric => Variable 
+* Long running job 
