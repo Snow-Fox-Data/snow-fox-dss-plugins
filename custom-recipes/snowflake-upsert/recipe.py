@@ -107,7 +107,7 @@ if output_table_exists:
     if "key" in mode:
         print('in key mode')
         # find all changes
-        sql = f'SELECT COUNT(*) FROM {source_table_full} EXCEPT SELECT * FROM {out_table_full}'
+        sql = f'SELECT COUNT(*) FROM (SELECT {cols} FROM {source_table_full} EXCEPT SELECT {cols} FROM {out_table_full})'
         executor = SQLExecutor2(dataset=out_ds)
         update_df = executor.query_to_df(sql)
                 
