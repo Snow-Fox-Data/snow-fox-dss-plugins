@@ -119,7 +119,7 @@ if output_table_exists:
         print(sql)
         
         if missing_df.iloc[0][0] > 0:
-            sql_insert = f'INSERT INTO {out_table} ({cols}) '
+            sql_insert = f'INSERT INTO {out_table_full} ({cols}) '
             sql_select = f'SELECT {cols} FROM {source_table_full} WHERE "{key_field}" IN (SELECT st."{key_field}" FROM {out_table_full} ot RIGHT JOIN {source_table_full} st ON ot."{key_field}"=st."{key_field}" WHERE ot."{key_field}" IS NULL)'
 
             print(sql_insert)
