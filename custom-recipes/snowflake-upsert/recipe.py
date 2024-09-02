@@ -96,6 +96,15 @@ if schema_exists:
         print(f'couldnt select from output. error: {e}')
 
 if output_table_exists:
+
+    # check to make sure the schemas are the same
+    ss_sql = f"SELECT GET_DDL('table', '{source_table_full}') EXCEPT SELECT GET_DDL('table', '{out_table_full}')"
+    executor = SQLExecutor2(dataset=out_ds)
+    diff_df = executor.query_to_df(ss_sql)
+
+    if len(diff_df) > 0:
+        raise(f'input and output schemas are different')
+
     cols = ''
     dest_cols = ''
     for c in source_ds.read_schema():
@@ -186,8 +195,8 @@ else:
     executor = SQLExecutor2(dataset=out_ds)
     res = executor.query_to_df(sql)
     
-    if not schema_exists:
-        out_ds.write_schema_from_dataframe(source_ds.get_dataframe(limit=1))
+    # if not schema_exists:
+        # out_ds.write_schema_from_dataframe(source_ds.get_dataframe(limit=1))
     
     sql_log = f'SELECT COUNT(*) FROM {source_table_full}'
     executor = SQLExecutor2(dataset=source_ds)
