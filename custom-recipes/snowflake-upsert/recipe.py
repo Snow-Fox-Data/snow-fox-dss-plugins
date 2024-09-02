@@ -9,6 +9,7 @@ from datetime import datetime
 import pandas as pd, numpy as np
 from dataiku import pandasutils as pdu
 from dataiku import SQLExecutor2
+import re
 
 # Read recipe input and output
 si1 = get_input_names_for_role('source_dataset')
@@ -30,8 +31,48 @@ if len(si2) > 0:
     
     logs_table = log_ds.get_location_info()['info']['table']
 
-# plugin config
 
+def parse_ddl(ddl):
+    # Remove the create table part and the enclosing parentheses
+    ddl_cleaned = re.sub(r'create or replace TABLE [\w\d_]+ \(|\);', '', ddl, flags=re.IGNORECASE)
+    
+    # Split the cleaned DDL string by commas
+    ddl_lines = [line.strip() for line in ddl_cleaned.split(',') if line.strip()]
+    
+    # Extract column names and types
+    columns = []
+    for line in ddl_lines:
+        # Split the line by the first space to separate the column name and type
+        match = re.match(r'"([^"]+)"\s+([A-Z0-9_\(\),]+)', line, re.IGNORECASE)
+        if match:
+            column_name = match.group(1)
+            column_type = match.group(2)
+            columns.append((column_name, column_type))
+    
+    return columns
+
+def compare_schemas(ddl1, ddl2):
+    # Parse both DDL strings to get the column name and type pairs
+    schema1 = parse_ddl(ddl1)
+    schema2 = parse_ddl(ddl2)
+    
+    # Convert the lists to dictionaries for easy comparison
+    schema_dict1 = dict(schema1)
+    schema_dict2 = dict(schema2)
+    
+    # Check if the keys (column names) are the same
+    if set(schema_dict1.keys()) != set(schema_dict2.keys()):
+        return False, "Column names differ between the two tables."
+    
+    # Check if the column types match for each column
+    for column in schema_dict1:
+        if schema_dict1[column] != schema_dict2[column]:
+            return False, f"Data type mismatch for column '{column}': {schema_dict1[column]} != {schema_dict2[column]}"
+    
+    return True, "Schemas are identical."
+
+
+# plugin config
 cfg = get_recipe_config()
 key_field = cfg['key_name']
 mode = cfg['mode_selection']
@@ -46,6 +87,10 @@ try:
 except Exception as e:
     print(f'output dataset schema does not exist {e}')
     schema_exists = False
+
+def remove_newlines(input_string):
+    # Remove newline characters
+    return input_string.replace('\n', '').replace('\r', '')
 
 def get_dataset_info(ds):
     source_schema = ''
@@ -98,12 +143,15 @@ if schema_exists:
 if output_table_exists:
 
     # check to make sure the schemas are the same
-    ss_sql = f"SELECT GET_DDL('table', '{source_table_full}') EXCEPT SELECT GET_DDL('table', '{out_table_full}')"
+    ss_sql = f"SELECT GET_DDL('table', '{source_table_full}'), GET_DDL('table', '{out_table_full}')"
     executor = SQLExecutor2(dataset=out_ds)
-    diff_df = executor.query_to_df(ss_sql)
+    ddl_df = executor.query_to_df(ss_sql)
+    ddl_ok, ddl_msg = compare_schemas(remove_newlines(ddl_df.iloc[0][0]), remove_newlines(ddl_df.iloc[0][1]))
 
-    if len(diff_df) > 0:
-        raise(f'input and output schemas are different')
+    print(ddl_ok, ddl_msg)
+
+    if not ddl_ok:
+        raise(Exception(f'Schemas do not match: {ddl_msg}'))
 
     cols = ''
     dest_cols = ''
