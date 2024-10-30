@@ -53,6 +53,36 @@ def char_replacements(col_name, to_upper, space_replace, special_char_replace, d
 
     return new_name
 
+def do_map_simple(source_ds, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace):
+    source_info = source_ds.get_location_info()['info']
+    source_table = source_info['table']
+
+    if 'schema' in source_info:
+        source_table = source_info['schema'] + '.' + source_table
+
+    if 'catalog' in source_info:
+        source_table = source_info['catalog'] + '.' + source_table
+
+    executor = SQLExecutor2(dataset=source_ds)
+
+    # retrieving the source columns
+    source_qry = 'SELECT TOP 1 * FROM ' + source_table
+    df = executor.query_to_df(source_qry)
+
+    sql = 'SELECT '
+
+    for column in df.columns:
+      
+        new_name = char_replacements(column, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace)           
+        sql += f'"{column}" AS "{new_name}",'
+
+    # remove the last comma
+    sql = sql[0:len(sql)-1]
+
+    sql += ' FROM ' + source_table
+
+    return sql
+
 def do_map(source_ds, output_ds, map_df, table_name, table_field, desc_field, source_field, dest_field, to_upper, space_replace, special_char_replace, dollar_char_replace, start_char_replace):
     comments = {}
 

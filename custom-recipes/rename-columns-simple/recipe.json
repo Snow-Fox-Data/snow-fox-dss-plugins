@@ -1,0 +1,123 @@
+// This file is the descriptor for the Custom code recipe remap-columns
+{
+    // Meta data for display purposes
+    "meta": {
+        // label: name of the recipe as displayed, should be short
+        "label": "Rename columns - simple",
+        // description: longer string to help end users understand what this recipe does
+        "description": "Allows SQL dataset columns to be cleaed up for special characters and capitalization.",
+        // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "icon-random"
+    },
+    "kind": "PYTHON",
+    "inputRoles": [
+        {
+            "name": "source_dataset",
+            "label": "Dataset with Columns to Rename",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "mustBeSQL": true
+        }
+    ],
+    "outputRoles": [
+        {
+            "name": "output_dataset",
+            "label": "Output",
+            "arity": "UNARY",
+            "mustBeSQL": true,
+            "required": true,
+            "acceptsDataset": true
+        }
+    ],
+    "selectableFromDataset": "source_dataset",
+    "params": [
+        {
+            "type": "BOOLEAN",
+            "name": "to_upper",
+            "label": "Convert column names to uppercase",
+            "defaultValue": false
+        },
+        {
+            "type": "SELECT",
+            "name": "space_replace",
+            "label": "Replace spaces?",
+            "defaultValue": "no",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not replace"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Replace with underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        },
+        {
+            "type": "SELECT",
+            "name": "special_char_replace",
+            "defaultValue": "no",
+            "label": "Replace special characters?",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not replace"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Replace with underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        },
+        {
+            "type": "SELECT",
+            "name": "dollar_char_replace",
+            "defaultValue": "no",
+            "label": "Replace $ characters?",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Do not replace"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Replace with underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        },
+        {
+            "type": "SELECT",
+            "name": "start_char_replace",
+            "defaultValue": "no",
+            "label": "If column starts with $ or digit",
+            "selectChoices": [
+                {
+                    "value": "no",
+                    "label": "Leave as-is"
+                },
+                {
+                    "value": "underscore",
+                    "label": "Prefix with an underscore"
+                },
+                {
+                    "value": "delete",
+                    "label": "Delete the character"
+                }
+            ]
+        }
+    ],
+    "resourceKeys": []
+}
